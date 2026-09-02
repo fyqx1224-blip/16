@@ -2239,6 +2239,83 @@ header {
 .physical-key:disabled {
   pointer-events: none;
 }
+.phone-object .physical-key::before,
+.phone-object .physical-key::after {
+  display: none;
+}
+.phone-frame-cache {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.object-image .phone-motion-frame {
+  position: absolute;
+  z-index: 3;
+  height: auto;
+  max-width: none;
+  pointer-events: none;
+  will-change: opacity;
+}
+.phone-motion-frame.voicemail-frame {
+  left: 50.46%;
+  top: 61.04%;
+  width: 10.74%;
+}
+.phone-motion-frame.one-frame {
+  left: 44.27%;
+  top: 35.64%;
+  width: 10.09%;
+}
+.phone-motion-frame.play-frame {
+  left: 58.59%;
+  top: 59.57%;
+  width: 10.42%;
+}
+.phone-motion-frame.half-frame {
+  animation: generated-half-frame 430ms steps(1) both;
+}
+.phone-motion-frame.full-frame {
+  animation: generated-full-frame 430ms steps(1) both;
+}
+@keyframes generated-half-frame {
+  0%,
+  11% {
+    opacity: 0;
+  }
+  12%,
+  38% {
+    opacity: 1;
+  }
+  39%,
+  71% {
+    opacity: 0;
+  }
+  72%,
+  86% {
+    opacity: 1;
+  }
+  87%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes generated-full-frame {
+  0%,
+  38% {
+    opacity: 0;
+  }
+  39%,
+  71% {
+    opacity: 1;
+  }
+  72%,
+  100% {
+    opacity: 0;
+  }
+}
 .voicemail-key {
   left: 51.5%;
   top: 63.1%;

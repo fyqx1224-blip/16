@@ -604,7 +604,7 @@ export default function Home() {
     window.requestAnimationFrame(() => {
       setPressedPhoneKey(key);
       action();
-      window.setTimeout(() => setPressedPhoneKey(""), 260);
+      window.setTimeout(() => setPressedPhoneKey(""), 430);
     });
   };
   const playVoicemail = () => {
@@ -1105,6 +1105,31 @@ export default function Home() {
                 <div className="scene-object phone-object">
                   <div className="object-image">
                     <img src={asset("objects/office-voicemail-phone.webp")} alt="桌面上的旧座机" />
+                    <div className="phone-frame-cache" aria-hidden="true">
+                      {["voicemail", "one", "play"].flatMap((key) =>
+                        ["half", "full"].map((phase) => (
+                          <img
+                            key={`${key}-${phase}`}
+                            src={asset(`objects/phone-frames/${key}-${phase}.webp`)}
+                            alt=""
+                          />
+                        )),
+                      )}
+                    </div>
+                    {pressedPhoneKey && (
+                      <>
+                        <img
+                          className={`phone-motion-frame ${pressedPhoneKey}-frame half-frame`}
+                          src={asset(`objects/phone-frames/${pressedPhoneKey}-half.webp`)}
+                          alt=""
+                        />
+                        <img
+                          className={`phone-motion-frame ${pressedPhoneKey}-frame full-frame`}
+                          src={asset(`objects/phone-frames/${pressedPhoneKey}-full.webp`)}
+                          alt=""
+                        />
+                      </>
+                    )}
                     <div className={`phone-lcd lcd-${phoneStep}`} aria-hidden="true">
                       <span>
                         {phoneStep === "idle"
