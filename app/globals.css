@@ -2395,6 +2395,58 @@ header {
 .phone-lcd.lcd-playing span {
   animation: lcd-playing 950ms steps(2) infinite;
 }
+.phone-object .phone-lcd {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 0;
+  background: url("/16/objects/office-voicemail-phone.webp") center / 100% 100% no-repeat;
+  box-shadow: none;
+  color: transparent;
+  text-shadow: none;
+  transform: none;
+  clip-path: polygon(44.4% 28.5%, 67.5% 28.5%, 67.5% 38.5%, 44.4% 38.5%);
+  pointer-events: none;
+}
+.phone-object .phone-lcd span,
+.phone-object .phone-lcd::after {
+  display: none;
+}
+.phone-object .phone-lcd.lcd-idle {
+  opacity: 0;
+}
+.phone-object .phone-lcd:not(.lcd-idle) {
+  opacity: 1;
+  animation: photographed-lcd-jump 4.8s steps(1) infinite;
+}
+@keyframes photographed-lcd-jump {
+  0%,
+  7%,
+  10%,
+  76%,
+  80%,
+  100% {
+    transform: translate(0, 0);
+    filter: brightness(1);
+  }
+  8% {
+    transform: translateY(-1px);
+    filter: brightness(1.18) contrast(1.08);
+  }
+  9% {
+    transform: translateY(1px);
+    filter: brightness(0.72) contrast(1.12);
+  }
+  77% {
+    transform: translateX(1px);
+    filter: brightness(0.88);
+  }
+  78% {
+    transform: translateX(-1px);
+    filter: brightness(1.08);
+  }
+}
 @keyframes photographed-key-sink {
   0% {
     transform: perspective(420px) translateY(0) scale(1) rotateX(0);
