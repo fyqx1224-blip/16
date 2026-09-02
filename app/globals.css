@@ -2348,32 +2348,40 @@ header {
 }
 .phone-lcd {
   position: absolute;
-  left: 45.1%;
-  top: 30.5%;
+  left: 46.05%;
+  top: 31.25%;
   z-index: 3;
-  width: 22.2%;
-  height: 7%;
+  width: 20.35%;
+  height: 4.45%;
   display: grid;
   place-items: center;
   overflow: hidden;
-  transform: rotate(-0.8deg) skewX(1deg);
-  border-radius: 3px;
-  background: #657060b8;
-  color: #172019;
-  mix-blend-mode: multiply;
+  transform: rotate(-1deg) skewX(0.8deg);
+  border-radius: 2px;
+  background: linear-gradient(180deg, #697365 0%, #5f695d 53%, #657064 100%);
+  box-shadow:
+    inset 0 2px 5px #26302788,
+    inset 0 -1px 2px #a4ac9a55;
+  color: #1c251e;
   font:
-    clamp(7px, 1.2vw, 17px)/1 "Courier New",
+    clamp(6px, 1.05vw, 15px)/1 "Courier New",
     monospace;
-  letter-spacing: 0.045em;
-  text-shadow: 1px 0 #26312966;
+  letter-spacing: 0.035em;
+  text-shadow: 0.5px 0 #1118;
   animation: lcd-breathe 3.8s steps(1) infinite;
   pointer-events: none;
+}
+.phone-lcd.lcd-idle {
+  opacity: 0;
+  animation: none;
 }
 .phone-lcd::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(0deg, transparent 0 3px, #1820181f 4px);
+  background:
+    linear-gradient(105deg, #d6dcc722 0 18%, transparent 38%),
+    repeating-linear-gradient(0deg, transparent 0 3px, #18201812 4px);
 }
 .phone-lcd span {
   animation: lcd-jump 6.4s steps(1) infinite;
