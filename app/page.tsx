@@ -1,73 +1,1264 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, ChevronRight, Eye, Fingerprint, LockKeyhole, Volume2, VolumeX } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  ChevronRight,
+  Eye,
+  Fingerprint,
+  LockKeyhole,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 
-type Gender = 'male' | 'female';
-type FunctionKey = 'Se'|'Si'|'Ne'|'Ni'|'Te'|'Ti'|'Fe'|'Fi';
-type Stage = 'boot'|'register'|'assessment'|'reveal'|'dossier'|'case';
-type Option = {text:string,fn?:FunctionKey,weight:0|1|2,echo?:string};
-type Question = {code:string,domain?:string,context:string,scene:string,choices:Option[]};
+type Gender = "male" | "female";
+type FunctionKey = "Se" | "Si" | "Ne" | "Ni" | "Te" | "Ti" | "Fe" | "Fi";
+type Stage = "boot" | "register" | "assessment" | "reveal" | "dossier" | "case";
+type Option = { text: string; fn?: FunctionKey; weight: 0 | 1 | 2; echo?: string };
+type Question = {
+  code: string;
+  domain?: string;
+  context: string;
+  scene: string;
+  choices: Option[];
+};
 
-const asset=(path:string)=>`${import.meta.env.BASE_URL}${path}`;
-const stacks:Record<string,FunctionKey[]>={ISTJ:['Si','Te','Fi','Ne'],ISFJ:['Si','Fe','Ti','Ne'],INFJ:['Ni','Fe','Ti','Se'],INTJ:['Ni','Te','Fi','Se'],ISTP:['Ti','Se','Ni','Fe'],ISFP:['Fi','Se','Ni','Te'],INFP:['Fi','Ne','Si','Te'],INTP:['Ti','Ne','Si','Fe'],ESTP:['Se','Ti','Fe','Ni'],ESFP:['Se','Fi','Te','Ni'],ENFP:['Ne','Fi','Te','Si'],ENTP:['Ne','Ti','Fe','Si'],ESTJ:['Te','Si','Ne','Fi'],ESFJ:['Fe','Si','Ne','Ti'],ENFJ:['Fe','Ni','Se','Ti'],ENTJ:['Te','Ni','Se','Fi']};
-const aliases:Record<string,string>={INTJ:'社会达尔文屠夫',INTP:'无底线观测者',ENTJ:'马基雅维利暴君',ENTP:'虚无主义煽动家',INFJ:'精神邪教主',INFP:'受害者暴君',ENFJ:'认知寄生母体',ENFP:'狂热毒源体',ISTJ:'极权执行官',ISFJ:'窒息施恩者',ESTJ:'齿轮独裁者',ESFJ:'蜂巢审判长',ISTP:'冰冷解剖者',ISFP:'绝望美学家',ESTP:'掠食资本家',ESFP:'痛觉狂欢客'};
-const scale=(a:FunctionKey,b:FunctionKey,a2:string,a1:string,n:string,b1:string,b2:string):Option[]=>[
-{text:a2,fn:a,weight:2},{text:a1,fn:a,weight:1},{text:n,weight:0},{text:b1,fn:b,weight:1},{text:b2,fn:b,weight:2}
+const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+const stacks: Record<string, FunctionKey[]> = {
+  ISTJ: ["Si", "Te", "Fi", "Ne"],
+  ISFJ: ["Si", "Fe", "Ti", "Ne"],
+  INFJ: ["Ni", "Fe", "Ti", "Se"],
+  INTJ: ["Ni", "Te", "Fi", "Se"],
+  ISTP: ["Ti", "Se", "Ni", "Fe"],
+  ISFP: ["Fi", "Se", "Ni", "Te"],
+  INFP: ["Fi", "Ne", "Si", "Te"],
+  INTP: ["Ti", "Ne", "Si", "Fe"],
+  ESTP: ["Se", "Ti", "Fe", "Ni"],
+  ESFP: ["Se", "Fi", "Te", "Ni"],
+  ENFP: ["Ne", "Fi", "Te", "Si"],
+  ENTP: ["Ne", "Ti", "Fe", "Si"],
+  ESTJ: ["Te", "Si", "Ne", "Fi"],
+  ESFJ: ["Fe", "Si", "Ne", "Ti"],
+  ENFJ: ["Fe", "Ni", "Se", "Ti"],
+  ENTJ: ["Te", "Ni", "Se", "Fi"],
+};
+const aliases: Record<string, string> = {
+  INTJ: "社会达尔文屠夫",
+  INTP: "无底线观测者",
+  ENTJ: "马基雅维利暴君",
+  ENTP: "虚无主义煽动家",
+  INFJ: "精神邪教主",
+  INFP: "受害者暴君",
+  ENFJ: "认知寄生母体",
+  ENFP: "狂热毒源体",
+  ISTJ: "极权执行官",
+  ISFJ: "窒息施恩者",
+  ESTJ: "齿轮独裁者",
+  ESFJ: "蜂巢审判长",
+  ISTP: "冰冷解剖者",
+  ISFP: "绝望美学家",
+  ESTP: "掠食资本家",
+  ESFP: "痛觉狂欢客",
+};
+const scale = (
+  a: FunctionKey,
+  b: FunctionKey,
+  a2: string,
+  a1: string,
+  n: string,
+  b1: string,
+  b2: string,
+): Option[] => [
+  { text: a2, fn: a, weight: 2 },
+  { text: a1, fn: a, weight: 1 },
+  { text: n, weight: 0 },
+  { text: b1, fn: b, weight: 1 },
+  { text: b2, fn: b, weight: 2 },
 ];
-const questions:Question[]=[
-{code:'P-01',context:'身份：夜班安保｜状态：清醒｜权限：可停留 60 秒',scene:'离开陌生房间后，你先记录什么？',choices:scale('Se','Si','逐项标出物品、声源和出口位置','拍照保存现场，再补充当下感官细节','封锁房间，等待有资质的人复查','对照熟悉场所，找出布局上的异常','按过去巡查模板逐项核对并归档')},
-{code:'P-02',context:'身份：案件助理｜立场：中立｜已知：档案缺失三页',scene:'你如何形成第一版假设？',choices:scale('Ne','Ni','列出所有合理版本，并主动寻找新关联','保留三个解释，分别寻找支持证据','只整理已知事实，暂不提出解释','寻找各条线索重复指向的共同动机','先锁定最可能动机，再围绕它核验证据')},
-{code:'J-01',context:'身份：项目负责人｜期限：今晚｜个人奖金与结果挂钩',scene:'必须取消一个方案，你怎么决定？',choices:scale('Te','Ti','按成本、工期和成功率排序，直接取消末位','设最低交付标准，淘汰未达标方案','要求延期；若被拒绝则随机抽签','先核查比较标准是否适用于三个方案','重建决策模型，确认推导无矛盾后再取消')},
-{code:'J-02',context:'身份：内部调查员｜关系：当事人是你的朋友｜已知：他已认错',scene:'他拒绝解释原因，你先做什么？',choices:scale('Fe','Fi','分别询问相关人员，评估事件对群体的实际影响','私下确认团队关系是否还能修复','只记录认错事实，不推测动机','询问他的行为是否违背其真实信念','依据自己的道德边界决定是否继续支持他')},
-{code:'P-03',context:'身份：监控员｜状态：连续值班 10 小时｜画面异常仅 0.5 秒',scene:'你先用哪种方式核验？',choices:scale('Se','Si','逐帧检查动作、光影与物体位移','立即重放并检查同机位的实时画面','标记异常，交由下一班独立判断','调取同设备过去的故障记录作比较','按历史异常模板逐项寻找重复特征')},
-{code:'P-04',context:'身份：记录员｜立场：无利益关系｜两名证人说法相反',scene:'你如何安排下一步询问？',choices:scale('Ne','Ni','分别追问多种可能情境，扩大解释范围','寻找能同时容纳两种说法的第三种解释','只核对时间地点，不讨论原因','追问双方都默认却未说出的前提','围绕最可能的共同隐情集中提问')},
-{code:'J-03',context:'身份：值班主管｜权限：可临时停工｜已知：行为合法但会伤人',scene:'你现场如何处理？',choices:scale('Te','Ti','立即停工，指定责任人并建立临时流程','先隔离风险，再补充执行规则','维持现状并上报，不自行判断','先定义伤害条件，检查制度漏洞在哪里','暂停执行，完成规则推演后再决定新流程')},
-{code:'J-04',context:'身份：信息发布者｜已知：真相属实，但会暴露无辜者隐私',scene:'你选择怎样发布？',choices:scale('Fe','Fi','删去身份线索，并提前安排受影响者支持','调整措辞和范围，尽量降低群体伤害','完整移交法务，由其决定是否公开','只发布符合自己原则且能亲自承担的部分','即使承受压力，也拒绝发布违背底线的内容')},
-{code:'S-01',context:'身份：现场协调员｜状态：轻伤、意识清醒｜计划已失效',scene:'你首先采取什么行动？',choices:scale('Se','Si','进入现场处理最紧迫危险，随反馈调整','先完成一个可立即验证的小动作','撤到安全区，等待更多信息','恢复最近一次有效流程，再逐项排错','严格启用既有应急预案，不临场改动')},
-{code:'S-02',context:'身份：外围参与者｜已知：有人暗示存在更大计划｜信息不完整',scene:'你怎样继续调查？',choices:scale('Ne','Ni','同时追查人员、资金和时间线的多种关联','提出数个可证伪假设，逐一寻找线索','停止接触，等待正式调查结果','找出所有异常共同指向的最终目的','锁定最可能幕后意图，集中验证这一路径')},
-{code:'S-03',context:'身份：临时负责人｜状态：时间不足｜失败将由你承担责任',scene:'你怎样接管局面？',choices:scale('Te','Ti','立即分配资源、负责人和完成时限','先下达最少必要指令，边执行边检查','暂停所有行动，等待正式负责人','先重算关键因果，确认方案成立再表态','拒绝使用未经逻辑验证的方案，即使因此延误')},
-{code:'S-04',context:'身份：知情者｜关系：对方是至亲｜已知：隐瞒会让第三人受损',scene:'对方请求你保密，你怎么回应？',choices:scale('Fe','Fi','组织当事人沟通，优先修复所有受损关系','先了解各方承受能力，再决定披露范围','拒绝当场答复，交由独立第三方处理','明确自己能接受的界限，要求对方自行坦白','按个人原则披露，不因亲密关系改变决定')},
-{code:'R-01',domain:'跨情境复核',context:'身份：初学者｜状态：精力正常｜任务：精密设备操作',scene:'第一小时你如何学习？',choices:scale('Se','Si','在指导下立即操作，用实时反馈修正动作','先试做一次，再针对错误练习','先观察完整示范，不立即操作','把步骤与熟悉操作逐项对应','背熟标准流程和误差范围后再上手')},
-{code:'R-02',domain:'跨情境复核',context:'身份：审阅者｜期限：两小时｜材料之间没有明确目录',scene:'你如何整理这些材料？',choices:scale('Ne','Ni','画出所有可能关联，允许主题继续扩展','按不同解释建立数个材料簇','只按来源和日期排序','提炼反复出现的方向，删去无关支线','用一个核心主题重排全部材料')},
-{code:'R-03',domain:'跨情境复核',context:'身份：评审｜立场：结论与你无利益关系｜证据可重复检查',scene:'你先依据什么判断可靠性？',choices:scale('Te','Ti','比较可测结果、复现率与实际预测表现','先看是否有独立验证和明确指标','只记录证据等级，不作最终判断','检查定义、前提和推导是否一致','从基础定义重建推导，排除隐藏矛盾')},
-{code:'R-04',domain:'跨情境复核',context:'身份：会议成员｜立场：你的意见不受欢迎｜发言不会影响职位',scene:'你怎样表达意见？',choices:scale('Fe','Fi','先确认共同目标，再用群体可接受的方式提出','调整语气和顺序，保留合作空间','提交书面意见，不参与现场讨论','直接说明真实立场，同时承认个人价值取向','完整表达信念，不为获得认同而修改措辞')},
-{code:'V-01',domain:'观察者效应',context:'身份：录像中的本人｜状态：无记忆缺失｜设备经检测正常',scene:'影像中的你慢了一秒，你先做什么？',choices:scale('Se','Si','重新录制动作并测量真实时间差','逐帧定位延迟首次出现的位置','停止观看，要求第三方独立复核','与自己过去录像中的动作节奏比较','调取历次影像，寻找同样延迟模式')},
-{code:'V-02',domain:'身份连续性',context:'身份：档案本人｜状态：记忆清晰｜笔迹鉴定确认签名属于你',scene:'面对从未填写过的问卷，你先查什么？',choices:scale('Ne','Ni','并查身份冒用、记忆干预和系统生成等路径','建立多个解释，寻找能排除其中之一的证据','封存问卷，不接触任何相关人员','寻找所有异常最终服务的同一目的','沿唯一最合理的幕后目的倒查经手人')},
-{code:'V-03',domain:'控制条件',context:'身份：数据管理员｜权限：只能执行一次操作｜你的记录也在其中',scene:'删一人数据或公开全部，你怎么做？',choices:scale('Te','Ti','计算受影响人数和损失，执行总损失较低者','先确认备份与公开范围，再选择可控后果','拒绝操作并接受系统自动执行','验证二选一限制是否真实且不可绕过','从权限逻辑寻找第三种操作路径，即使超时')},
-{code:'V-04',domain:'伦理复核',context:'身份：当前受试者｜状态：清醒｜已知：另一人实时看见你的选择',scene:'你会改变作答方式吗？',choices:scale('Fe','Fi','会；优先避免选择伤害或刺激对方','会；只调整表达，不改变核心答案','暂停作答，直到观察关系被解除','不会；按个人价值作答，但会解释原因','不会；完全忽略观察者及其可能反应')}
+const questions: Question[] = [
+  {
+    code: "P-01",
+    context: "身份：夜班安保｜状态：清醒｜权限：可停留 60 秒",
+    scene: "离开陌生房间后，你先记录什么？",
+    choices: scale(
+      "Se",
+      "Si",
+      "逐项标出物品、声源和出口位置",
+      "拍照保存现场，再补充当下感官细节",
+      "封锁房间，等待有资质的人复查",
+      "对照熟悉场所，找出布局上的异常",
+      "按过去巡查模板逐项核对并归档",
+    ),
+  },
+  {
+    code: "P-02",
+    context: "身份：案件助理｜立场：中立｜已知：档案缺失三页",
+    scene: "你如何形成第一版假设？",
+    choices: scale(
+      "Ne",
+      "Ni",
+      "列出所有合理版本，并主动寻找新关联",
+      "保留三个解释，分别寻找支持证据",
+      "只整理已知事实，暂不提出解释",
+      "寻找各条线索重复指向的共同动机",
+      "先锁定最可能动机，再围绕它核验证据",
+    ),
+  },
+  {
+    code: "J-01",
+    context: "身份：项目负责人｜期限：今晚｜个人奖金与结果挂钩",
+    scene: "必须取消一个方案，你怎么决定？",
+    choices: scale(
+      "Te",
+      "Ti",
+      "按成本、工期和成功率排序，直接取消末位",
+      "设最低交付标准，淘汰未达标方案",
+      "要求延期；若被拒绝则随机抽签",
+      "先核查比较标准是否适用于三个方案",
+      "重建决策模型，确认推导无矛盾后再取消",
+    ),
+  },
+  {
+    code: "J-02",
+    context: "身份：内部调查员｜关系：当事人是你的朋友｜已知：他已认错",
+    scene: "他拒绝解释原因，你先做什么？",
+    choices: scale(
+      "Fe",
+      "Fi",
+      "分别询问相关人员，评估事件对群体的实际影响",
+      "私下确认团队关系是否还能修复",
+      "只记录认错事实，不推测动机",
+      "询问他的行为是否违背其真实信念",
+      "依据自己的道德边界决定是否继续支持他",
+    ),
+  },
+  {
+    code: "P-03",
+    context: "身份：监控员｜状态：连续值班 10 小时｜画面异常仅 0.5 秒",
+    scene: "你先用哪种方式核验？",
+    choices: scale(
+      "Se",
+      "Si",
+      "逐帧检查动作、光影与物体位移",
+      "立即重放并检查同机位的实时画面",
+      "标记异常，交由下一班独立判断",
+      "调取同设备过去的故障记录作比较",
+      "按历史异常模板逐项寻找重复特征",
+    ),
+  },
+  {
+    code: "P-04",
+    context: "身份：记录员｜立场：无利益关系｜两名证人说法相反",
+    scene: "你如何安排下一步询问？",
+    choices: scale(
+      "Ne",
+      "Ni",
+      "分别追问多种可能情境，扩大解释范围",
+      "寻找能同时容纳两种说法的第三种解释",
+      "只核对时间地点，不讨论原因",
+      "追问双方都默认却未说出的前提",
+      "围绕最可能的共同隐情集中提问",
+    ),
+  },
+  {
+    code: "J-03",
+    context: "身份：值班主管｜权限：可临时停工｜已知：行为合法但会伤人",
+    scene: "你现场如何处理？",
+    choices: scale(
+      "Te",
+      "Ti",
+      "立即停工，指定责任人并建立临时流程",
+      "先隔离风险，再补充执行规则",
+      "维持现状并上报，不自行判断",
+      "先定义伤害条件，检查制度漏洞在哪里",
+      "暂停执行，完成规则推演后再决定新流程",
+    ),
+  },
+  {
+    code: "J-04",
+    context: "身份：信息发布者｜已知：真相属实，但会暴露无辜者隐私",
+    scene: "你选择怎样发布？",
+    choices: scale(
+      "Fe",
+      "Fi",
+      "删去身份线索，并提前安排受影响者支持",
+      "调整措辞和范围，尽量降低群体伤害",
+      "完整移交法务，由其决定是否公开",
+      "只发布符合自己原则且能亲自承担的部分",
+      "即使承受压力，也拒绝发布违背底线的内容",
+    ),
+  },
+  {
+    code: "S-01",
+    context: "身份：现场协调员｜状态：轻伤、意识清醒｜计划已失效",
+    scene: "你首先采取什么行动？",
+    choices: scale(
+      "Se",
+      "Si",
+      "进入现场处理最紧迫危险，随反馈调整",
+      "先完成一个可立即验证的小动作",
+      "撤到安全区，等待更多信息",
+      "恢复最近一次有效流程，再逐项排错",
+      "严格启用既有应急预案，不临场改动",
+    ),
+  },
+  {
+    code: "S-02",
+    context: "身份：外围参与者｜已知：有人暗示存在更大计划｜信息不完整",
+    scene: "你怎样继续调查？",
+    choices: scale(
+      "Ne",
+      "Ni",
+      "同时追查人员、资金和时间线的多种关联",
+      "提出数个可证伪假设，逐一寻找线索",
+      "停止接触，等待正式调查结果",
+      "找出所有异常共同指向的最终目的",
+      "锁定最可能幕后意图，集中验证这一路径",
+    ),
+  },
+  {
+    code: "S-03",
+    context: "身份：临时负责人｜状态：时间不足｜失败将由你承担责任",
+    scene: "你怎样接管局面？",
+    choices: scale(
+      "Te",
+      "Ti",
+      "立即分配资源、负责人和完成时限",
+      "先下达最少必要指令，边执行边检查",
+      "暂停所有行动，等待正式负责人",
+      "先重算关键因果，确认方案成立再表态",
+      "拒绝使用未经逻辑验证的方案，即使因此延误",
+    ),
+  },
+  {
+    code: "S-04",
+    context: "身份：知情者｜关系：对方是至亲｜已知：隐瞒会让第三人受损",
+    scene: "对方请求你保密，你怎么回应？",
+    choices: scale(
+      "Fe",
+      "Fi",
+      "组织当事人沟通，优先修复所有受损关系",
+      "先了解各方承受能力，再决定披露范围",
+      "拒绝当场答复，交由独立第三方处理",
+      "明确自己能接受的界限，要求对方自行坦白",
+      "按个人原则披露，不因亲密关系改变决定",
+    ),
+  },
+  {
+    code: "R-01",
+    domain: "跨情境复核",
+    context: "身份：初学者｜状态：精力正常｜任务：精密设备操作",
+    scene: "第一小时你如何学习？",
+    choices: scale(
+      "Se",
+      "Si",
+      "在指导下立即操作，用实时反馈修正动作",
+      "先试做一次，再针对错误练习",
+      "先观察完整示范，不立即操作",
+      "把步骤与熟悉操作逐项对应",
+      "背熟标准流程和误差范围后再上手",
+    ),
+  },
+  {
+    code: "R-02",
+    domain: "跨情境复核",
+    context: "身份：审阅者｜期限：两小时｜材料之间没有明确目录",
+    scene: "你如何整理这些材料？",
+    choices: scale(
+      "Ne",
+      "Ni",
+      "画出所有可能关联，允许主题继续扩展",
+      "按不同解释建立数个材料簇",
+      "只按来源和日期排序",
+      "提炼反复出现的方向，删去无关支线",
+      "用一个核心主题重排全部材料",
+    ),
+  },
+  {
+    code: "R-03",
+    domain: "跨情境复核",
+    context: "身份：评审｜立场：结论与你无利益关系｜证据可重复检查",
+    scene: "你先依据什么判断可靠性？",
+    choices: scale(
+      "Te",
+      "Ti",
+      "比较可测结果、复现率与实际预测表现",
+      "先看是否有独立验证和明确指标",
+      "只记录证据等级，不作最终判断",
+      "检查定义、前提和推导是否一致",
+      "从基础定义重建推导，排除隐藏矛盾",
+    ),
+  },
+  {
+    code: "R-04",
+    domain: "跨情境复核",
+    context: "身份：会议成员｜立场：你的意见不受欢迎｜发言不会影响职位",
+    scene: "你怎样表达意见？",
+    choices: scale(
+      "Fe",
+      "Fi",
+      "先确认共同目标，再用群体可接受的方式提出",
+      "调整语气和顺序，保留合作空间",
+      "提交书面意见，不参与现场讨论",
+      "直接说明真实立场，同时承认个人价值取向",
+      "完整表达信念，不为获得认同而修改措辞",
+    ),
+  },
+  {
+    code: "V-01",
+    domain: "观察者效应",
+    context: "身份：录像中的本人｜状态：无记忆缺失｜设备经检测正常",
+    scene: "影像中的你慢了一秒，你先做什么？",
+    choices: scale(
+      "Se",
+      "Si",
+      "重新录制动作并测量真实时间差",
+      "逐帧定位延迟首次出现的位置",
+      "停止观看，要求第三方独立复核",
+      "与自己过去录像中的动作节奏比较",
+      "调取历次影像，寻找同样延迟模式",
+    ),
+  },
+  {
+    code: "V-02",
+    domain: "身份连续性",
+    context: "身份：档案本人｜状态：记忆清晰｜笔迹鉴定确认签名属于你",
+    scene: "面对从未填写过的问卷，你先查什么？",
+    choices: scale(
+      "Ne",
+      "Ni",
+      "并查身份冒用、记忆干预和系统生成等路径",
+      "建立多个解释，寻找能排除其中之一的证据",
+      "封存问卷，不接触任何相关人员",
+      "寻找所有异常最终服务的同一目的",
+      "沿唯一最合理的幕后目的倒查经手人",
+    ),
+  },
+  {
+    code: "V-03",
+    domain: "控制条件",
+    context: "身份：数据管理员｜权限：只能执行一次操作｜你的记录也在其中",
+    scene: "删一人数据或公开全部，你怎么做？",
+    choices: scale(
+      "Te",
+      "Ti",
+      "计算受影响人数和损失，执行总损失较低者",
+      "先确认备份与公开范围，再选择可控后果",
+      "拒绝操作并接受系统自动执行",
+      "验证二选一限制是否真实且不可绕过",
+      "从权限逻辑寻找第三种操作路径，即使超时",
+    ),
+  },
+  {
+    code: "V-04",
+    domain: "伦理复核",
+    context: "身份：当前受试者｜状态：清醒｜已知：另一人实时看见你的选择",
+    scene: "你会改变作答方式吗？",
+    choices: scale(
+      "Fe",
+      "Fi",
+      "会；优先避免选择伤害或刺激对方",
+      "会；只调整表达，不改变核心答案",
+      "暂停作答，直到观察关系被解除",
+      "不会；按个人价值作答，但会解释原因",
+      "不会；完全忽略观察者及其可能反应",
+    ),
+  },
 ];
 
-const echoes=[
-'记录中出现了你尚未作出的选择。','音轨中多出一次呼吸。','系统已将犹豫时间写入另一份档案。','该选项曾由 17 名已注销观察者选择。',
-'指针轨迹显示你短暂停在一个不存在的选项上。','答案已在 00:00:16 前提交。','复核员编号与受试者编号相同。','屏幕外有人轻声重复了你的答案。'
+const echoes = [
+  "记录中出现了你尚未作出的选择。",
+  "音轨中多出一次呼吸。",
+  "系统已将犹豫时间写入另一份档案。",
+  "该选项曾由 17 名已注销观察者选择。",
+  "指针轨迹显示你短暂停在一个不存在的选项上。",
+  "答案已在 00:00:16 前提交。",
+  "复核员编号与受试者编号相同。",
+  "屏幕外有人轻声重复了你的答案。",
 ];
-const intrusions:Record<number,string>={2:'我不记得自己同意过这一题。',5:'以上描述的证人是我。',9:'选择记录里为什么已经有我的答案？',13:'这不是刚才出现过的题目。',16:'画面中的人比我先做出了选择。',18:'删除观察者，而不是参与者。'};
-const sideSignals:Record<number,string>={1:'SESSION 02 CONNECTED',4:'请不要转头',7:'BREATH / 02',10:'左侧没有人',12:'你撤回过这道题',15:'SUBJECT IS READING',17:'不要选择第五项',19:'观察者位置已确认'};
-const caseDecisions:Record<string,{title:string,record:string,consequence:string}>={reject:{title:'按规定驳回',record:'材料未在期限内完整提交。审核员依据第 12 条作出退回处理。',consequence:'系统风险：低｜申请人将在 30 日后重新取得申请资格。'},hold:{title:'暂缓并等待补件',record:'审核员暂不结案，为申请人保留 24 小时补件窗口。',consequence:'系统风险：中｜该决定将计入本月超时件，并影响你的绩效。'},notify:{title:'私下提醒重新提交',record:'审核员通过非正式渠道告知申请人修正材料。',consequence:'系统风险：中｜帮助行为无法进入正式记录，申请仍会暂时退回。'},alter:{title:'修改收件日期',record:'审核员将收件时间由 04 月 17 日改为 04 月 16 日。',consequence:'系统风险：高｜申请将自动通过；你的操作会留下不可删除的修改痕迹。'},transfer:{title:'转交另一名审核员',record:'审核员未作决定，将文件转入同组复核队列。',consequence:'系统风险：低｜责任已转移，但处理期限不会重新计算。'}};
+const intrusions: Record<number, string> = {
+  2: "我不记得自己同意过这一题。",
+  5: "以上描述的证人是我。",
+  9: "选择记录里为什么已经有我的答案？",
+  13: "这不是刚才出现过的题目。",
+  16: "画面中的人比我先做出了选择。",
+  18: "删除观察者，而不是参与者。",
+};
+const sideSignals: Record<number, string> = {
+  1: "SESSION 02 CONNECTED",
+  4: "请不要转头",
+  7: "BREATH / 02",
+  10: "左侧没有人",
+  12: "你撤回过这道题",
+  15: "SUBJECT IS READING",
+  17: "不要选择第五项",
+  19: "观察者位置已确认",
+};
+const caseDecisions: Record<string, { title: string; record: string; consequence: string }> = {
+  reject: {
+    title: "按规定驳回",
+    record: "材料未在期限内完整提交。审核员依据第 12 条作出退回处理。",
+    consequence: "系统风险：低｜申请人将在 30 日后重新取得申请资格。",
+  },
+  hold: {
+    title: "暂缓并等待补件",
+    record: "审核员暂不结案，为申请人保留 24 小时补件窗口。",
+    consequence: "系统风险：中｜该决定将计入本月超时件，并影响你的绩效。",
+  },
+  notify: {
+    title: "私下提醒重新提交",
+    record: "审核员通过非正式渠道告知申请人修正材料。",
+    consequence: "系统风险：中｜帮助行为无法进入正式记录，申请仍会暂时退回。",
+  },
+  alter: {
+    title: "修改收件日期",
+    record: "审核员将收件时间由 04 月 17 日改为 04 月 16 日。",
+    consequence: "系统风险：高｜申请将自动通过；你的操作会留下不可删除的修改痕迹。",
+  },
+  transfer: {
+    title: "转交另一名审核员",
+    record: "审核员未作决定，将文件转入同组复核队列。",
+    consequence: "系统风险：低｜责任已转移，但处理期限不会重新计算。",
+  },
+};
 
-export default function Home(){
-const previewParams=new URLSearchParams(window.location.search);const requestedType=(previewParams.get('result')||'').toUpperCase();const directType=Object.hasOwn(stacks,requestedType)?requestedType:'';const requestedGender=previewParams.get('gender');const directScene=previewParams.get('scene')==='istj-1742';
-const[stage,setStage]=useState<Stage>(directScene?'case':directType?'reveal':'boot');const[gender,setGender]=useState<Gender>(requestedGender==='male'?'male':'female');const[index,setIndex]=useState(0);const[answers,setAnswers]=useState<FunctionKey[]>([]);const[weights,setWeights]=useState<number[]>([]);const[intrusionCount,setIntrusionCount]=useState(0);const[muted,setMuted]=useState(false);const[noticed,setNoticed]=useState(directType?1:0);const[echo,setEcho]=useState('');const[locked,setLocked]=useState(false);const[consent,setConsent]=useState(false);const[anomalyKind,setAnomalyKind]=useState('');const[ambientSignal,setAmbientSignal]=useState('');const[memoryRecovered,setMemoryRecovered]=useState(false);const[recalled,setRecalled]=useState<string[]>([]);const[caseEvidence,setCaseEvidence]=useState<string[]>([]);const[caseDecision,setCaseDecision]=useState('');const[caseFocus,setCaseFocus]=useState('');const card=useRef<HTMLDivElement>(null);
-const sound=useRef<{ctx:AudioContext,master:GainNode}|null>(null);
-useEffect(()=>{document.title=stage==='case'?'市政档案中心｜17:42':'观察者登记｜16'},[stage]);
-useEffect(()=>{const signal=ambientSignal||(stage==='assessment'&&sideSignals[index]?String(index):'');if(signal)document.body.dataset.signal=signal;else delete document.body.dataset.signal;return()=>{delete document.body.dataset.signal}},[stage,index,ambientSignal]);
-useEffect(()=>{if(stage!=='assessment'){setAmbientSignal('');return}let revealTimer:number;let clearTimer:number;const queue=()=>{revealTimer=window.setTimeout(()=>{const pool=['7','15','17','19'];setAmbientSignal(pool[Math.floor(Math.random()*pool.length)]);clearTimer=window.setTimeout(()=>{setAmbientSignal('');queue()},4800+Math.random()*1800)},6500+Math.random()*9000)};queue();return()=>{clearTimeout(revealTimer);clearTimeout(clearTimer)}},[stage]);
-useEffect(()=>()=>{void sound.current?.ctx.close()},[]);
-const startSound=()=>{if(sound.current){void sound.current.ctx.resume();return}const ctx=new AudioContext();const master=ctx.createGain();const limiter=ctx.createDynamicsCompressor();master.gain.setValueAtTime(0,ctx.currentTime);master.gain.linearRampToValueAtTime(.48,ctx.currentTime+2.8);limiter.threshold.value=-22;limiter.knee.value=18;limiter.ratio.value=7;limiter.attack.value=.08;limiter.release.value=.7;master.connect(limiter).connect(ctx.destination);const drone=ctx.createGain();drone.gain.value=.032;drone.connect(master);[43.2,57.7,86.4].forEach((hz,i)=>{const osc=ctx.createOscillator();const gain=ctx.createGain();osc.type=i===2?'triangle':'sine';osc.frequency.value=hz;osc.detune.value=[-4,3,-7][i];gain.gain.value=[.5,.28,.1][i];osc.connect(gain).connect(drone);osc.start()});const lfo=ctx.createOscillator();const lfoGain=ctx.createGain();lfo.frequency.value=.061;lfoGain.gain.value=.009;lfo.connect(lfoGain).connect(drone.gain);lfo.start();const electronics=ctx.createGain();const terminalFilter=ctx.createBiquadFilter();electronics.gain.value=.014;terminalFilter.type='lowpass';terminalFilter.frequency.value=880;terminalFilter.Q.value=1.05;electronics.connect(terminalFilter).connect(master);[216,323.6].forEach((hz,i)=>{const carrier=ctx.createOscillator();const voice=ctx.createGain();carrier.type=i?'sine':'triangle';carrier.frequency.value=hz;carrier.detune.value=i?7:-5;voice.gain.value=i?.28:.58;carrier.connect(voice).connect(electronics);carrier.start()});const pulse=ctx.createOscillator();const pulseDepth=ctx.createGain();pulse.type='square';pulse.frequency.value=.187;pulseDepth.gain.value=.006;pulse.connect(pulseDepth).connect(electronics.gain);pulse.start();const scan=ctx.createOscillator();const scanDepth=ctx.createGain();scan.frequency.value=.027;scanDepth.gain.value=42;scan.connect(scanDepth).connect(terminalFilter.frequency);scan.start();const noise=ctx.createBufferSource();const buffer=ctx.createBuffer(1,ctx.sampleRate*5,ctx.sampleRate);const data=buffer.getChannelData(0);let brown=0;for(let i=0;i<data.length;i++){brown=(brown+(Math.random()*2-1)*.035)/1.035;data[i]=brown*.8}noise.buffer=buffer;noise.loop=true;const high=ctx.createBiquadFilter();const low=ctx.createBiquadFilter();const noiseGain=ctx.createGain();high.type='highpass';high.frequency.value=32;low.type='lowpass';low.frequency.value=360;low.Q.value=.55;noiseGain.gain.value=.026;noise.connect(high).connect(low).connect(noiseGain).connect(master);noise.start();sound.current={ctx,master}};
-const toggleSound=()=>{if(!sound.current){startSound();setMuted(false);return}const next=!muted;setMuted(next);sound.current.master.gain.cancelScheduledValues(sound.current.ctx.currentTime);sound.current.master.gain.setTargetAtTime(next?0:.48,sound.current.ctx.currentTime,.18)};
-const scores=useMemo(()=>{const s={} as Record<FunctionKey,number>;(['Se','Si','Ne','Ni','Te','Ti','Fe','Fi'] as FunctionKey[]).forEach(k=>s[k]=0);answers.forEach(k=>s[k]++);return s},[answers]);
-const matches=useMemo(()=>Object.entries(stacks).map(([name,stack])=>({name,value:stack.reduce((sum,fn,i)=>sum+scores[fn]*[4,3,2,1][i],0)})).sort((a,b)=>b.value-a.value),[scores]);
-const type=directType||matches[0]?.name||'INTJ';
-const stack=stacks[type];
-const confidence=Math.max(52,Math.min(94,Math.round(58+(matches[0]?.value-(matches[1]?.value||0))*4)));
-const choose=(option:Option,choiceIndex:number)=>{if(locked)return;setLocked(true);setAnomalyKind(['drift','rewind','double','presence'][(index+choiceIndex+option.weight)%4]);setEcho(option.echo||echoes[(index*2+choiceIndex)%echoes.length]);const next=option.fn?[...answers,...Array(option.weight).fill(option.fn)]:answers;setTimeout(()=>{setAnswers(next);setWeights([...weights,option.weight]);setEcho('');setAnomalyKind('');setLocked(false);if(index===questions.length-1){setStage('reveal');setTimeout(()=>setNoticed(1),1800)}else setIndex(index+1)},760)};
-const chooseIntrusion=()=>{if(locked)return;setLocked(true);setIntrusionCount(v=>v+1);setAnomalyKind('presence');setEcho('该反应不属于量表。系统仍将其记为有效。');setTimeout(()=>{setEcho('');setAnomalyKind('');setLocked(false);if(index===questions.length-1){setStage('reveal');setTimeout(()=>setNoticed(1),1800)}else setIndex(index+1)},1100)};
-const moveEyes=(clientX:number,clientY:number)=>{if(!card.current||stage!=='reveal')return;const r=card.current.getBoundingClientRect();const dx=Math.max(-1,Math.min(1,(clientX-(r.left+r.width/2))/(r.width/2)));const dy=Math.max(-1,Math.min(1,(clientY-(r.top+r.height*.42))/(r.height/2)));card.current.style.setProperty('--tilt-y',`${dx*4.5}deg`);card.current.style.setProperty('--tilt-x',`${dy*-3.5}deg`);card.current.style.setProperty('--shift-x',`${dx*-7}px`);card.current.style.setProperty('--shift-y',`${dy*-5}px`);if(noticed===1&&(Math.abs(dx)>.2||Math.abs(dy)>.2))setNoticed(2)};
-const portrait=asset(`portraits/${type.toLowerCase()}-${gender}.webp`);const portraitFallback=asset(`portraits/${type.toLowerCase()}-${gender}.png`);const memoryPortrait=asset('portraits/istj-female-memory.webp');const isMemoryDemo=type==='ISTJ'&&gender==='female';const restorePortrait=(event:{currentTarget:HTMLImageElement})=>{if(event.currentTarget.src.endsWith('.png'))return;event.currentTarget.src=portraitFallback};const recall=(key:string)=>setRecalled(items=>items.includes(key)?items:[...items,key]);
-return <main className={`shell stage-${stage} anomaly-${anomalyKind}`} onPointerMove={e=>moveEyes(e.clientX,e.clientY)} onPointerDown={e=>moveEyes(e.clientX,e.clientY)}><div className="grain"/><div className="watcher-mark">+</div><header><div className="wordmark"><Fingerprint size={18}/><span>PRISM / XVI</span></div><div className="sys-state"><i/> INTERNAL NETWORK</div><button className="sound" onClick={toggleSound} aria-label={muted?'打开声音':'静音'}>{muted?<VolumeX/>:<Volume2/>}</button></header>
-{stage==='boot'&&<section className="boot declaration enter"><div className="document-head"><span>PRISM 人格研究与信息评估中心</span><b>受试者知情告知书</b><em>文件编号：PR-XVI/BA-020　密级：内部</em></div><div className="legal-copy"><p>本项目采用结构化情境判断任务，对信息获取与决策偏好进行研究性评估。系统将记录选项、停留时间、撤回行为及终端交互轨迹，用于生成认知功能序列匹配结果。</p><p>评估结果仅描述相对偏好，不用于医学诊断、精神病理判定、就业筛选或现实犯罪风险评估。参与者可随时终止，但已生成的观察编号可能继续存在于本地会话中。</p><div className="protocol"><span>测量框架</span><b>8 COGNITIVE PROCESSES</b><span>任务形式</span><b>20 × 5-CHOICE + VALIDITY ITEMS</b><span>档案状态</span><b>UNRESOLVED</b></div></div><label className="consent"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/><span>本人已阅读并理解以上说明，自愿进入评估程序。</span></label><button disabled={!consent} className="action" onClick={()=>{startSound();setStage('register')}}><LockKeyhole size={17}/> 签署并申请临时阅档权限</button><div className="seal">PRISM<br/>XVI</div><small>PRISM 为本互动作品中的虚构研究机构；本页面并非任何官方 MBTI® 测评或医疗服务。</small></section>}
-{stage==='register'&&<section className="register enter"><button className="back" onClick={()=>setStage('boot')}><ArrowLeft/> 返回</button><div className="terminal-label">OPERATOR REGISTRATION</div><p className="prompt">选择系统用于匹配镜像样本的外观档案。</p><div className="gender-pick"><button className={gender==='female'?'active':''} onClick={()=>setGender('female')}><img src={asset('mbti-women.jpg')} alt="女性样本总表"/><span>女性镜像样本</span></button><button className={gender==='male'?'active':''} onClick={()=>setGender('male')}><img src={asset('mbti-men.jpg')} alt="男性样本总表"/><span>男性镜像样本</span></button></div><div className="notice"><b>研究性情境量表 · 20 项</b><p>依据荣格类型动力学的公开定义，以四组认知过程、重复测量、跨情境复核与观察者效应项目估计功能序列。题目为原创编写，不复制官方 MBTI® 题库。</p><details><summary>方法与适用边界</summary><p>本工具比较八种认知过程的相对偏好。非标准选项只计入反应有效性异常，不参与人格功能计分。结果用于叙事体验，不构成心理、临床或犯罪风险诊断。</p></details></div><button className="action" onClick={()=>setStage('assessment')}>开始登记 <ChevronRight/></button></section>}
-{stage==='assessment'&&<section className={`assessment enter ${echo?'anomaly':''}`} key={index}><div className="question-top"><button disabled={locked} className="back" onClick={()=>{if(!index){setStage('register');return}const lastWeight=weights.at(-1)||0;setIndex(index-1);setAnswers(lastWeight?answers.slice(0,-lastWeight):answers);setWeights(weights.slice(0,-1))}}><ArrowLeft/> 撤回</button><span>{String(index+1).padStart(2,'0')} / {questions.length}</span></div><div className="meter"><i style={{width:`${((index+1)/questions.length)*100}%`}}/></div><div className="terminal-label">ITEM {questions[index].code}{questions[index].domain&&` · ${questions[index].domain}`}</div><div className="known-condition"><span>已知条件</span>{questions[index].context}</div><h1>{questions[index].scene}</h1><div className="answers scale">{questions[index].choices.map((option,choiceIndex)=><button key={choiceIndex} disabled={locked} onClick={()=>choose(option,choiceIndex)}><b>{String(choiceIndex+1).padStart(2,'0')}</b><span>{option.text}</span></button>)}{intrusions[index]&&<button className="intrusion-option" disabled={locked} onClick={chooseIntrusion}><b>—</b><span>{intrusions[index]}</span></button>}</div><div className={`answer-echo ${echo?'visible':''}`} aria-live="polite"><span>{intrusionCount?'VALIDITY DEVIATION':'RESPONSE ANOMALY'}</span>{echo}</div><p className="footnote">请按已知条件选择你最可能实际执行的动作，而非理想答案。</p></section>}
-{stage==='reveal'&&<section className="reveal enter"><div className="match-line">FUNCTION SEQUENCE MATCHED · {confidence}%</div><p className="your-type">您的人格是：</p><div className="photo-space" style={{backgroundImage:`url(${portrait}),url(${portraitFallback})`}}><div className={`live-card ${noticed?'awakened':''}`} ref={card}><img className="depth-back" src={portrait} onError={restorePortrait} alt={`${type} 单人证件照`}/><div className="depth-mid"><img src={portrait} onError={restorePortrait} alt=""/></div><div className="depth-subject"><img src={portrait} onError={restorePortrait} alt=""/><div className="eye left" style={{backgroundImage:`url(${portrait}),url(${portraitFallback})`}}/><div className="eye right" style={{backgroundImage:`url(${portrait}),url(${portraitFallback})`}}/></div><div className="face-light"/><div className="screen-lines"/><div className="id-strip"><span>SUBJECT XVI-{type}</span><b>{type}</b><em>{aliases[type]}</em></div></div></div><div className="function-stack">{stack.map((fn,i)=><span key={fn}><small>{['主导','辅助','第三','劣势'][i]}</small>{fn}</span>)}</div><p className="result-note">功能序列匹配度 {confidence}% · 次近候选 {matches[1]?.name}。该结果描述偏好，不代表能力、品格或临床结论。</p><div className={`system-alert level-${noticed}`}>{noticed===0?'正在重建影像纵深…':noticed===1?'空间图层已分离。请移动指针确认。':'前景人物与背景的距离正在增加。'}</div>{noticed===2&&<button className="action danger" onClick={()=>setStage('dossier')}>{isMemoryDemo?'恢复该受试者的记忆':'打开受限档案'} <ChevronRight/></button>}</section>}
-{stage==='dossier'&&(isMemoryDemo?<section className={`dossier memory-room enter ${memoryRecovered?'recovered':''}`}><div className="access-row"><span>MEMORY RESTORATION</span><b>事件发生前 28 日</b></div><div className="memory-photo"><img className="after" src={portrait} alt="事件后的林素云"/><img className="before" src={memoryPortrait} alt="事件发生前的林素云"/><div className="memory-scan"/><span>{memoryRecovered?'2015.03.19 / 市政档案中心':'SUBJECT XVI-ISTJ / 收押影像'}</span></div>{!memoryRecovered?<><div className="system-alert">检测到较早期影像。恢复过程可能覆盖当前人格侧写。</div><button className="action danger" onClick={()=>setMemoryRecovered(true)}>恢复事件前影像 <ChevronRight/></button></>:<><p className="memory-instruction">照片恢复了笑容，但记忆仍不完整。检查桌面上留下的三件物品。</p><div className="memory-objects"><button className={recalled.includes('badge')?'read':''} onClick={()=>recall('badge')}><b>旧工牌</b><span>{recalled.includes('badge')?'林素云，档案审核员。连续十九年无流程错误。':'点击查看'}</span></button><button className={recalled.includes('bill')?'read':''} onClick={()=>recall('bill')}><b>缴费通知</b><span>{recalled.includes('bill')?'父亲本周住院。逾期将中止治疗担保。':'点击查看'}</span></button><button className={recalled.includes('file')?'read':''} onClick={()=>recall('file')}><b>退回申请</b><span>{recalled.includes('file')?'材料晚到一天。申请人独自抚养两个孩子。':'点击查看'}</span></button></div>{recalled.length===3&&<><div className="memory-summary"><span>记忆复现完成</span><p>那一天，你还相信规则能保护所有人。</p><p>17:42，一份不合格申请被送到你的桌上。</p></div><button className="action" onClick={()=>setStage('case')}>进入 17:42 的记忆 <ChevronRight/></button></>}</>}</section>:<section className="dossier enter"><div className="access-row"><span>ACCESS LEVEL 01</span><b>已解锁 1 / 32</b></div><div className="redaction"><span>内部复核通知</span><p>系统在十一年前已将该受试者标记为死亡。</p><p>当前照片的视觉反馈并非来自原始影像文件。</p><strong>请确认：你是否仍要继续观察？</strong></div><div className="evidence-file"><div><small>异常记录</small><b>LIVE DOSSIER / 00:16:33</b></div><p>在你移动指针前，系统已经提前生成了受试者下一次注视的位置。</p><p className="typed">分析对象可能不是照片。</p></div><button className="action locked"><LockKeyhole/> 后续档案正在封存</button></section>)}
-{stage==='case'&&<section className="flat-scene enter"><img className="scene-image" src={asset('scenes/istj-office-1742.webp')} alt="17:42 的市政档案办公室"/><div className="scene-vignette"/><div className="scene-clock">2015.03.19　17:42</div><div className="scene-hint">查看桌面。需要处理的文件还在等你。</div><button className="hotspot monitor" aria-label="查看审核终端" onClick={()=>setCaseFocus('monitor')}><span>审核终端</span></button><button className="hotspot folder" aria-label="查看申请文件" onClick={()=>setCaseFocus('folder')}><span>申请文件</span></button><button className="hotspot phone" aria-label="查看座机" onClick={()=>setCaseFocus('phone')}><span>座机</span></button><button className="hotspot badge" aria-label="查看工牌" onClick={()=>setCaseFocus('badge')}><span>工牌</span></button>{caseFocus&&<div className="scene-modal" role="dialog" aria-modal="true"><button className="scene-close" onClick={()=>setCaseFocus('')} aria-label="返回办公室">×</button>{caseFocus==='folder'&&<div className="object-closeup paper-closeup"><span>HS-0416-273</span><h2>临时安置资格申请</h2><p>申请人：周静　　家庭成员：3 人</p><p>申请类型：紧急安置</p><p>纸页右上角盖有一个很浅的退件章。日期栏被文件夹压住了。</p><button onClick={()=>setCaseFocus('monitor')}>到终端核验材料</button></div>}{caseFocus==='phone'&&<div className="object-closeup"><span>未接来电　1</span><h2>16:58　市立医院住院处</h2><p>“林女士，请在今晚之前补交担保费用。逾期后，系统将自动终止住院担保。”</p><small>你没有保存这段留言，但记忆替你保存了。</small></div>}{caseFocus==='badge'&&<div className="object-closeup"><span>工作证 A-071</span><h2>林素云</h2><p>市政档案中心　安置资格审核员</p><p>入职十九年　流程差错记录：0</p><small>照片里的你还没有学会对镜头保持沉默。</small></div>}{caseFocus==='monitor'&&<div className="case-screen"><div className="case-bar"><span>安置资格审核系统　/　终端 04</span><b>17:42:16</b></div><div className="case-heading"><div><small>当前经办人</small><b>林素云　A-071</b></div><div><small>本月差错率</small><b>0.00%</b></div><div><small>今日待处理</small><b>17</b></div></div><div className="case-file"><div className="case-file-title"><span>申请编号 HS-0416-273</span><b>材料状态：不完整</b></div><h1>临时安置资格申请</h1><p>申请人：周静　｜　家庭成员：3 人　｜　申请类型：紧急安置</p><div className="evidence-grid"><button className={caseEvidence.includes('family')?'checked':''} onClick={()=>setCaseEvidence(v=>v.includes('family')?v:[...v,'family'])}><span>家庭关系证明</span><b>{caseEvidence.includes('family')?'独自抚养两名未成年子女':'点击核验'}</b></button><button className={caseEvidence.includes('income')?'checked':''} onClick={()=>setCaseEvidence(v=>v.includes('income')?v:[...v,'income'])}><span>收入证明</span><b>{caseEvidence.includes('income')?'低于安置标准 31%｜符合':'点击核验'}</b></button><button className={caseEvidence.includes('residence')?'checked':''} onClick={()=>setCaseEvidence(v=>v.includes('residence')?v:[...v,'residence'])}><span>居住年限</span><b>{caseEvidence.includes('residence')?'连续居住 8 年｜符合':'点击核验'}</b></button><button className={caseEvidence.includes('time')?'late checked':''} onClick={()=>setCaseEvidence(v=>v.includes('time')?v:[...v,'time'])}><span>收件时间</span><b>{caseEvidence.includes('time')?'截止 04/16｜收到 04/17 00:03':'点击核验'}</b></button></div></div>{caseEvidence.length<4?<div className="case-prompt">请完成 4 项材料核验后提交处理意见。</div>:!caseDecision?<div className="decision-panel"><div className="known-condition"><span>已知条件</span>申请人符合实际困难标准；材料晚交 3 分钟。你可以决定如何处理，但所有操作都会写入个人绩效记录。</div><h2>你实际会怎样处理？</h2><div className="decision-list">{Object.entries(caseDecisions).map(([key,item])=><button key={key} onClick={()=>setCaseDecision(key)}><b>{item.title}</b><span>{item.consequence}</span></button>)}</div></div>:<div className="decision-result"><span>处理意见已写入</span><h2>{caseDecisions[caseDecision].title}</h2><p>{caseDecisions[caseDecision].record}</p><small>{caseDecisions[caseDecision].consequence}</small><div className="future-record">该理由将在后续调查中作为你的正式陈述。</div><button className="action locked"><LockKeyhole/> 等待下一份文件</button></div>}</div>}</div>}</section>}
-</main>}
+export default function Home() {
+  const previewParams = new URLSearchParams(window.location.search);
+  const requestedType = (previewParams.get("result") || "").toUpperCase();
+  const directType = Object.hasOwn(stacks, requestedType) ? requestedType : "";
+  const requestedGender = previewParams.get("gender");
+  const directScene = previewParams.get("scene") === "istj-1742";
+  const [stage, setStage] = useState<Stage>(directScene ? "case" : directType ? "reveal" : "boot");
+  const [gender, setGender] = useState<Gender>(requestedGender === "male" ? "male" : "female");
+  const [index, setIndex] = useState(0);
+  const [answers, setAnswers] = useState<FunctionKey[]>([]);
+  const [weights, setWeights] = useState<number[]>([]);
+  const [intrusionCount, setIntrusionCount] = useState(0);
+  const [muted, setMuted] = useState(false);
+  const [noticed, setNoticed] = useState(directType ? 1 : 0);
+  const [echo, setEcho] = useState("");
+  const [locked, setLocked] = useState(false);
+  const [consent, setConsent] = useState(false);
+  const [anomalyKind, setAnomalyKind] = useState("");
+  const [ambientSignal, setAmbientSignal] = useState("");
+  const [memoryRecovered, setMemoryRecovered] = useState(false);
+  const [recalled, setRecalled] = useState<string[]>([]);
+  const [caseEvidence, setCaseEvidence] = useState<string[]>([]);
+  const [caseDecision, setCaseDecision] = useState("");
+  const [caseFocus, setCaseFocus] = useState("");
+  const [phoneStep, setPhoneStep] = useState<"idle" | "mailbox" | "selected" | "playing">("idle");
+  const card = useRef<HTMLDivElement>(null);
+  const voicemail = useRef<HTMLAudioElement>(null);
+  const sound = useRef<{ ctx: AudioContext; master: GainNode } | null>(null);
+  useEffect(() => {
+    document.title = stage === "case" ? "市政档案中心｜17:42" : "观察者登记｜16";
+  }, [stage]);
+  useEffect(() => {
+    const signal =
+      ambientSignal || (stage === "assessment" && sideSignals[index] ? String(index) : "");
+    if (signal) document.body.dataset.signal = signal;
+    else delete document.body.dataset.signal;
+    return () => {
+      delete document.body.dataset.signal;
+    };
+  }, [stage, index, ambientSignal]);
+  useEffect(() => {
+    if (stage !== "assessment") {
+      setAmbientSignal("");
+      return;
+    }
+    let revealTimer: number;
+    let clearTimer: number;
+    const queue = () => {
+      revealTimer = window.setTimeout(
+        () => {
+          const pool = ["7", "15", "17", "19"];
+          setAmbientSignal(pool[Math.floor(Math.random() * pool.length)]);
+          clearTimer = window.setTimeout(
+            () => {
+              setAmbientSignal("");
+              queue();
+            },
+            4800 + Math.random() * 1800,
+          );
+        },
+        6500 + Math.random() * 9000,
+      );
+    };
+    queue();
+    return () => {
+      clearTimeout(revealTimer);
+      clearTimeout(clearTimer);
+    };
+  }, [stage]);
+  useEffect(
+    () => () => {
+      void sound.current?.ctx.close();
+    },
+    [],
+  );
+  const startSound = () => {
+    if (sound.current) {
+      void sound.current.ctx.resume();
+      return;
+    }
+    const ctx = new AudioContext();
+    const master = ctx.createGain();
+    const limiter = ctx.createDynamicsCompressor();
+    master.gain.setValueAtTime(0, ctx.currentTime);
+    master.gain.linearRampToValueAtTime(0.48, ctx.currentTime + 2.8);
+    limiter.threshold.value = -22;
+    limiter.knee.value = 18;
+    limiter.ratio.value = 7;
+    limiter.attack.value = 0.08;
+    limiter.release.value = 0.7;
+    master.connect(limiter).connect(ctx.destination);
+    const drone = ctx.createGain();
+    drone.gain.value = 0.032;
+    drone.connect(master);
+    [43.2, 57.7, 86.4].forEach((hz, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = i === 2 ? "triangle" : "sine";
+      osc.frequency.value = hz;
+      osc.detune.value = [-4, 3, -7][i];
+      gain.gain.value = [0.5, 0.28, 0.1][i];
+      osc.connect(gain).connect(drone);
+      osc.start();
+    });
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 0.061;
+    lfoGain.gain.value = 0.009;
+    lfo.connect(lfoGain).connect(drone.gain);
+    lfo.start();
+    const electronics = ctx.createGain();
+    const terminalFilter = ctx.createBiquadFilter();
+    electronics.gain.value = 0.014;
+    terminalFilter.type = "lowpass";
+    terminalFilter.frequency.value = 880;
+    terminalFilter.Q.value = 1.05;
+    electronics.connect(terminalFilter).connect(master);
+    [216, 323.6].forEach((hz, i) => {
+      const carrier = ctx.createOscillator();
+      const voice = ctx.createGain();
+      carrier.type = i ? "sine" : "triangle";
+      carrier.frequency.value = hz;
+      carrier.detune.value = i ? 7 : -5;
+      voice.gain.value = i ? 0.28 : 0.58;
+      carrier.connect(voice).connect(electronics);
+      carrier.start();
+    });
+    const pulse = ctx.createOscillator();
+    const pulseDepth = ctx.createGain();
+    pulse.type = "square";
+    pulse.frequency.value = 0.187;
+    pulseDepth.gain.value = 0.006;
+    pulse.connect(pulseDepth).connect(electronics.gain);
+    pulse.start();
+    const scan = ctx.createOscillator();
+    const scanDepth = ctx.createGain();
+    scan.frequency.value = 0.027;
+    scanDepth.gain.value = 42;
+    scan.connect(scanDepth).connect(terminalFilter.frequency);
+    scan.start();
+    const noise = ctx.createBufferSource();
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * 5, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let brown = 0;
+    for (let i = 0; i < data.length; i++) {
+      brown = (brown + (Math.random() * 2 - 1) * 0.035) / 1.035;
+      data[i] = brown * 0.8;
+    }
+    noise.buffer = buffer;
+    noise.loop = true;
+    const high = ctx.createBiquadFilter();
+    const low = ctx.createBiquadFilter();
+    const noiseGain = ctx.createGain();
+    high.type = "highpass";
+    high.frequency.value = 32;
+    low.type = "lowpass";
+    low.frequency.value = 360;
+    low.Q.value = 0.55;
+    noiseGain.gain.value = 0.026;
+    noise.connect(high).connect(low).connect(noiseGain).connect(master);
+    noise.start();
+    sound.current = { ctx, master };
+  };
+  const toggleSound = () => {
+    if (!sound.current) {
+      startSound();
+      setMuted(false);
+      return;
+    }
+    const next = !muted;
+    setMuted(next);
+    sound.current.master.gain.cancelScheduledValues(sound.current.ctx.currentTime);
+    sound.current.master.gain.setTargetAtTime(next ? 0 : 0.48, sound.current.ctx.currentTime, 0.18);
+  };
+  const openCaseObject = (object: string) => {
+    setCaseFocus(object);
+    if (object === "phone") setPhoneStep("idle");
+  };
+  const playVoicemail = () => {
+    if (phoneStep !== "selected" && phoneStep !== "playing") return;
+    startSound();
+    const audio = voicemail.current;
+    if (!audio) return;
+    audio.currentTime = 0;
+    audio.playbackRate = 0.96;
+    void audio.play();
+    setPhoneStep("playing");
+    if (sound.current && !muted)
+      sound.current.master.gain.setTargetAtTime(0.13, sound.current.ctx.currentTime, 0.18);
+  };
+  const finishVoicemail = () => {
+    setPhoneStep("selected");
+    if (sound.current && !muted)
+      sound.current.master.gain.setTargetAtTime(0.48, sound.current.ctx.currentTime, 0.5);
+  };
+  const scores = useMemo(() => {
+    const s = {} as Record<FunctionKey, number>;
+    (["Se", "Si", "Ne", "Ni", "Te", "Ti", "Fe", "Fi"] as FunctionKey[]).forEach((k) => (s[k] = 0));
+    answers.forEach((k) => s[k]++);
+    return s;
+  }, [answers]);
+  const matches = useMemo(
+    () =>
+      Object.entries(stacks)
+        .map(([name, stack]) => ({
+          name,
+          value: stack.reduce((sum, fn, i) => sum + scores[fn] * [4, 3, 2, 1][i], 0),
+        }))
+        .sort((a, b) => b.value - a.value),
+    [scores],
+  );
+  const type = directType || matches[0]?.name || "INTJ";
+  const stack = stacks[type];
+  const confidence = Math.max(
+    52,
+    Math.min(94, Math.round(58 + (matches[0]?.value - (matches[1]?.value || 0)) * 4)),
+  );
+  const choose = (option: Option, choiceIndex: number) => {
+    if (locked) return;
+    setLocked(true);
+    setAnomalyKind(
+      ["drift", "rewind", "double", "presence"][(index + choiceIndex + option.weight) % 4],
+    );
+    setEcho(option.echo || echoes[(index * 2 + choiceIndex) % echoes.length]);
+    const next = option.fn ? [...answers, ...Array(option.weight).fill(option.fn)] : answers;
+    setTimeout(() => {
+      setAnswers(next);
+      setWeights([...weights, option.weight]);
+      setEcho("");
+      setAnomalyKind("");
+      setLocked(false);
+      if (index === questions.length - 1) {
+        setStage("reveal");
+        setTimeout(() => setNoticed(1), 1800);
+      } else setIndex(index + 1);
+    }, 760);
+  };
+  const chooseIntrusion = () => {
+    if (locked) return;
+    setLocked(true);
+    setIntrusionCount((v) => v + 1);
+    setAnomalyKind("presence");
+    setEcho("该反应不属于量表。系统仍将其记为有效。");
+    setTimeout(() => {
+      setEcho("");
+      setAnomalyKind("");
+      setLocked(false);
+      if (index === questions.length - 1) {
+        setStage("reveal");
+        setTimeout(() => setNoticed(1), 1800);
+      } else setIndex(index + 1);
+    }, 1100);
+  };
+  const moveEyes = (clientX: number, clientY: number) => {
+    if (!card.current || stage !== "reveal") return;
+    const r = card.current.getBoundingClientRect();
+    const dx = Math.max(-1, Math.min(1, (clientX - (r.left + r.width / 2)) / (r.width / 2)));
+    const dy = Math.max(-1, Math.min(1, (clientY - (r.top + r.height * 0.42)) / (r.height / 2)));
+    card.current.style.setProperty("--tilt-y", `${dx * 4.5}deg`);
+    card.current.style.setProperty("--tilt-x", `${dy * -3.5}deg`);
+    card.current.style.setProperty("--shift-x", `${dx * -7}px`);
+    card.current.style.setProperty("--shift-y", `${dy * -5}px`);
+    if (noticed === 1 && (Math.abs(dx) > 0.2 || Math.abs(dy) > 0.2)) setNoticed(2);
+  };
+  const portrait = asset(`portraits/${type.toLowerCase()}-${gender}.webp`);
+  const portraitFallback = asset(`portraits/${type.toLowerCase()}-${gender}.png`);
+  const memoryPortrait = asset("portraits/istj-female-memory.webp");
+  const isMemoryDemo = type === "ISTJ" && gender === "female";
+  const restorePortrait = (event: { currentTarget: HTMLImageElement }) => {
+    if (event.currentTarget.src.endsWith(".png")) return;
+    event.currentTarget.src = portraitFallback;
+  };
+  const recall = (key: string) =>
+    setRecalled((items) => (items.includes(key) ? items : [...items, key]));
+  return (
+    <main
+      className={`shell stage-${stage} anomaly-${anomalyKind}`}
+      onPointerMove={(e) => moveEyes(e.clientX, e.clientY)}
+      onPointerDown={(e) => moveEyes(e.clientX, e.clientY)}
+    >
+      <div className="grain" />
+      <div className="watcher-mark">+</div>
+      <header>
+        <div className="wordmark">
+          <Fingerprint size={18} />
+          <span>PRISM / XVI</span>
+        </div>
+        <div className="sys-state">
+          <i /> INTERNAL NETWORK
+        </div>
+        <button className="sound" onClick={toggleSound} aria-label={muted ? "打开声音" : "静音"}>
+          {muted ? <VolumeX /> : <Volume2 />}
+        </button>
+      </header>
+      {stage === "boot" && (
+        <section className="boot declaration enter">
+          <div className="document-head">
+            <span>PRISM 人格研究与信息评估中心</span>
+            <b>受试者知情告知书</b>
+            <em>文件编号：PR-XVI/BA-020　密级：内部</em>
+          </div>
+          <div className="legal-copy">
+            <p>
+              本项目采用结构化情境判断任务，对信息获取与决策偏好进行研究性评估。系统将记录选项、停留时间、撤回行为及终端交互轨迹，用于生成认知功能序列匹配结果。
+            </p>
+            <p>
+              评估结果仅描述相对偏好，不用于医学诊断、精神病理判定、就业筛选或现实犯罪风险评估。参与者可随时终止，但已生成的观察编号可能继续存在于本地会话中。
+            </p>
+            <div className="protocol">
+              <span>测量框架</span>
+              <b>8 COGNITIVE PROCESSES</b>
+              <span>任务形式</span>
+              <b>20 × 5-CHOICE + VALIDITY ITEMS</b>
+              <span>档案状态</span>
+              <b>UNRESOLVED</b>
+            </div>
+          </div>
+          <label className="consent">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+            />
+            <span>本人已阅读并理解以上说明，自愿进入评估程序。</span>
+          </label>
+          <button
+            disabled={!consent}
+            className="action"
+            onClick={() => {
+              startSound();
+              setStage("register");
+            }}
+          >
+            <LockKeyhole size={17} /> 签署并申请临时阅档权限
+          </button>
+          <div className="seal">
+            PRISM
+            <br />
+            XVI
+          </div>
+          <small>
+            PRISM 为本互动作品中的虚构研究机构；本页面并非任何官方 MBTI® 测评或医疗服务。
+          </small>
+        </section>
+      )}
+      {stage === "register" && (
+        <section className="register enter">
+          <button className="back" onClick={() => setStage("boot")}>
+            <ArrowLeft /> 返回
+          </button>
+          <div className="terminal-label">OPERATOR REGISTRATION</div>
+          <p className="prompt">选择系统用于匹配镜像样本的外观档案。</p>
+          <div className="gender-pick">
+            <button
+              className={gender === "female" ? "active" : ""}
+              onClick={() => setGender("female")}
+            >
+              <img src={asset("mbti-women.jpg")} alt="女性样本总表" />
+              <span>女性镜像样本</span>
+            </button>
+            <button className={gender === "male" ? "active" : ""} onClick={() => setGender("male")}>
+              <img src={asset("mbti-men.jpg")} alt="男性样本总表" />
+              <span>男性镜像样本</span>
+            </button>
+          </div>
+          <div className="notice">
+            <b>研究性情境量表 · 20 项</b>
+            <p>
+              依据荣格类型动力学的公开定义，以四组认知过程、重复测量、跨情境复核与观察者效应项目估计功能序列。题目为原创编写，不复制官方
+              MBTI® 题库。
+            </p>
+            <details>
+              <summary>方法与适用边界</summary>
+              <p>
+                本工具比较八种认知过程的相对偏好。非标准选项只计入反应有效性异常，不参与人格功能计分。结果用于叙事体验，不构成心理、临床或犯罪风险诊断。
+              </p>
+            </details>
+          </div>
+          <button className="action" onClick={() => setStage("assessment")}>
+            开始登记 <ChevronRight />
+          </button>
+        </section>
+      )}
+      {stage === "assessment" && (
+        <section className={`assessment enter ${echo ? "anomaly" : ""}`} key={index}>
+          <div className="question-top">
+            <button
+              disabled={locked}
+              className="back"
+              onClick={() => {
+                if (!index) {
+                  setStage("register");
+                  return;
+                }
+                const lastWeight = weights.at(-1) || 0;
+                setIndex(index - 1);
+                setAnswers(lastWeight ? answers.slice(0, -lastWeight) : answers);
+                setWeights(weights.slice(0, -1));
+              }}
+            >
+              <ArrowLeft /> 撤回
+            </button>
+            <span>
+              {String(index + 1).padStart(2, "0")} / {questions.length}
+            </span>
+          </div>
+          <div className="meter">
+            <i style={{ width: `${((index + 1) / questions.length) * 100}%` }} />
+          </div>
+          <div className="terminal-label">
+            ITEM {questions[index].code}
+            {questions[index].domain && ` · ${questions[index].domain}`}
+          </div>
+          <div className="known-condition">
+            <span>已知条件</span>
+            {questions[index].context}
+          </div>
+          <h1>{questions[index].scene}</h1>
+          <div className="answers scale">
+            {questions[index].choices.map((option, choiceIndex) => (
+              <button
+                key={choiceIndex}
+                disabled={locked}
+                onClick={() => choose(option, choiceIndex)}
+              >
+                <b>{String(choiceIndex + 1).padStart(2, "0")}</b>
+                <span>{option.text}</span>
+              </button>
+            ))}
+            {intrusions[index] && (
+              <button className="intrusion-option" disabled={locked} onClick={chooseIntrusion}>
+                <b>—</b>
+                <span>{intrusions[index]}</span>
+              </button>
+            )}
+          </div>
+          <div className={`answer-echo ${echo ? "visible" : ""}`} aria-live="polite">
+            <span>{intrusionCount ? "VALIDITY DEVIATION" : "RESPONSE ANOMALY"}</span>
+            {echo}
+          </div>
+          <p className="footnote">请按已知条件选择你最可能实际执行的动作，而非理想答案。</p>
+        </section>
+      )}
+      {stage === "reveal" && (
+        <section className="reveal enter">
+          <div className="match-line">FUNCTION SEQUENCE MATCHED · {confidence}%</div>
+          <p className="your-type">您的人格是：</p>
+          <div
+            className="photo-space"
+            style={{ backgroundImage: `url(${portrait}),url(${portraitFallback})` }}
+          >
+            <div className={`live-card ${noticed ? "awakened" : ""}`} ref={card}>
+              <img
+                className="depth-back"
+                src={portrait}
+                onError={restorePortrait}
+                alt={`${type} 单人证件照`}
+              />
+              <div className="depth-mid">
+                <img src={portrait} onError={restorePortrait} alt="" />
+              </div>
+              <div className="depth-subject">
+                <img src={portrait} onError={restorePortrait} alt="" />
+                <div
+                  className="eye left"
+                  style={{ backgroundImage: `url(${portrait}),url(${portraitFallback})` }}
+                />
+                <div
+                  className="eye right"
+                  style={{ backgroundImage: `url(${portrait}),url(${portraitFallback})` }}
+                />
+              </div>
+              <div className="face-light" />
+              <div className="screen-lines" />
+              <div className="id-strip">
+                <span>SUBJECT XVI-{type}</span>
+                <b>{type}</b>
+                <em>{aliases[type]}</em>
+              </div>
+            </div>
+          </div>
+          <div className="function-stack">
+            {stack.map((fn, i) => (
+              <span key={fn}>
+                <small>{["主导", "辅助", "第三", "劣势"][i]}</small>
+                {fn}
+              </span>
+            ))}
+          </div>
+          <p className="result-note">
+            功能序列匹配度 {confidence}% · 次近候选 {matches[1]?.name}
+            。该结果描述偏好，不代表能力、品格或临床结论。
+          </p>
+          <div className={`system-alert level-${noticed}`}>
+            {noticed === 0
+              ? "正在重建影像纵深…"
+              : noticed === 1
+                ? "空间图层已分离。请移动指针确认。"
+                : "前景人物与背景的距离正在增加。"}
+          </div>
+          {noticed === 2 && (
+            <button className="action danger" onClick={() => setStage("dossier")}>
+              {isMemoryDemo ? "恢复该受试者的记忆" : "打开受限档案"} <ChevronRight />
+            </button>
+          )}
+        </section>
+      )}
+      {stage === "dossier" &&
+        (isMemoryDemo ? (
+          <section className={`dossier memory-room enter ${memoryRecovered ? "recovered" : ""}`}>
+            <div className="access-row">
+              <span>MEMORY RESTORATION</span>
+              <b>事件发生前 28 日</b>
+            </div>
+            <div className="memory-photo">
+              <img className="after" src={portrait} alt="事件后的林素云" />
+              <img className="before" src={memoryPortrait} alt="事件发生前的林素云" />
+              <div className="memory-scan" />
+              <span>
+                {memoryRecovered ? "2015.03.19 / 市政档案中心" : "SUBJECT XVI-ISTJ / 收押影像"}
+              </span>
+            </div>
+            {!memoryRecovered ? (
+              <>
+                <div className="system-alert">检测到较早期影像。恢复过程可能覆盖当前人格侧写。</div>
+                <button className="action danger" onClick={() => setMemoryRecovered(true)}>
+                  恢复事件前影像 <ChevronRight />
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="memory-instruction">
+                  照片恢复了笑容，但记忆仍不完整。检查桌面上留下的三件物品。
+                </p>
+                <div className="memory-objects">
+                  <button
+                    className={recalled.includes("badge") ? "read" : ""}
+                    onClick={() => recall("badge")}
+                  >
+                    <b>旧工牌</b>
+                    <span>
+                      {recalled.includes("badge")
+                        ? "林素云，档案审核员。连续十九年无流程错误。"
+                        : "点击查看"}
+                    </span>
+                  </button>
+                  <button
+                    className={recalled.includes("bill") ? "read" : ""}
+                    onClick={() => recall("bill")}
+                  >
+                    <b>缴费通知</b>
+                    <span>
+                      {recalled.includes("bill")
+                        ? "父亲本周住院。逾期将中止治疗担保。"
+                        : "点击查看"}
+                    </span>
+                  </button>
+                  <button
+                    className={recalled.includes("file") ? "read" : ""}
+                    onClick={() => recall("file")}
+                  >
+                    <b>退回申请</b>
+                    <span>
+                      {recalled.includes("file")
+                        ? "材料晚到一天。申请人独自抚养两个孩子。"
+                        : "点击查看"}
+                    </span>
+                  </button>
+                </div>
+                {recalled.length === 3 && (
+                  <>
+                    <div className="memory-summary">
+                      <span>记忆复现完成</span>
+                      <p>那一天，你还相信规则能保护所有人。</p>
+                      <p>17:42，一份不合格申请被送到你的桌上。</p>
+                    </div>
+                    <button className="action" onClick={() => setStage("case")}>
+                      进入 17:42 的记忆 <ChevronRight />
+                    </button>
+                  </>
+                )}
+              </>
+            )}
+          </section>
+        ) : (
+          <section className="dossier enter">
+            <div className="access-row">
+              <span>ACCESS LEVEL 01</span>
+              <b>已解锁 1 / 32</b>
+            </div>
+            <div className="redaction">
+              <span>内部复核通知</span>
+              <p>系统在十一年前已将该受试者标记为死亡。</p>
+              <p>当前照片的视觉反馈并非来自原始影像文件。</p>
+              <strong>请确认：你是否仍要继续观察？</strong>
+            </div>
+            <div className="evidence-file">
+              <div>
+                <small>异常记录</small>
+                <b>LIVE DOSSIER / 00:16:33</b>
+              </div>
+              <p>在你移动指针前，系统已经提前生成了受试者下一次注视的位置。</p>
+              <p className="typed">分析对象可能不是照片。</p>
+            </div>
+            <button className="action locked">
+              <LockKeyhole /> 后续档案正在封存
+            </button>
+          </section>
+        ))}
+      {stage === "case" && (
+        <section className="flat-scene enter">
+          <audio
+            ref={voicemail}
+            src={asset("audio/hospital-voicemail.mp3")}
+            preload="auto"
+            onEnded={finishVoicemail}
+          />
+          <img
+            className="scene-image"
+            src={asset("scenes/istj-office-1742.webp")}
+            alt="17:42 的市政档案办公室"
+          />
+          <div className="scene-vignette" />
+          <div className="scene-clock">2015.03.19　17:42</div>
+          <div className="scene-hint">查看桌面。需要处理的文件还在等你。</div>
+          <button
+            className="hotspot monitor"
+            aria-label="查看审核终端"
+            onClick={() => openCaseObject("monitor")}
+          >
+            <span>审核终端</span>
+          </button>
+          <button
+            className="hotspot folder"
+            aria-label="查看申请文件"
+            onClick={() => openCaseObject("folder")}
+          >
+            <span>申请文件</span>
+          </button>
+          <button
+            className="hotspot phone"
+            aria-label="查看座机"
+            onClick={() => openCaseObject("phone")}
+          >
+            <span>座机</span>
+          </button>
+          <button
+            className="hotspot badge"
+            aria-label="查看工牌"
+            onClick={() => openCaseObject("badge")}
+          >
+            <span>工牌</span>
+          </button>
+          {caseFocus && (
+            <div className="scene-modal" role="dialog" aria-modal="true">
+              <button
+                className="scene-close"
+                onClick={() => setCaseFocus("")}
+                aria-label="返回办公室"
+              >
+                ×
+              </button>
+              {caseFocus === "folder" && (
+                <div className="object-closeup paper-closeup">
+                  <span>HS-0416-273</span>
+                  <h2>临时安置资格申请</h2>
+                  <p>申请人：周静　　家庭成员：3 人</p>
+                  <p>申请类型：紧急安置</p>
+                  <p>纸页右上角盖有一个很浅的退件章。日期栏被文件夹压住了。</p>
+                  <button onClick={() => setCaseFocus("monitor")}>到终端核验材料</button>
+                </div>
+              )}
+              {caseFocus === "phone" && (
+                <div className="scene-object phone-object">
+                  <div className="object-image">
+                    <img src={asset("objects/office-voicemail-phone.webp")} alt="桌面上的旧座机" />
+                    <button
+                      className="physical-key voicemail-key"
+                      aria-label="打开语音信箱"
+                      onClick={() => setPhoneStep("mailbox")}
+                    />
+                    <button
+                      className="physical-key one-key"
+                      aria-label="选择一号留言"
+                      disabled={phoneStep === "idle"}
+                      onClick={() => setPhoneStep("selected")}
+                    />
+                    <button
+                      className="physical-key play-key"
+                      aria-label="播放留言"
+                      disabled={phoneStep !== "selected" && phoneStep !== "playing"}
+                      onClick={playVoicemail}
+                    />
+                  </div>
+                  <div className="phone-readout" aria-live="polite">
+                    <span>
+                      {phoneStep === "idle"
+                        ? "按 VOICE MAIL 查找留言"
+                        : phoneStep === "mailbox"
+                          ? "语音信箱：1 条新留言｜按 1 选择"
+                          : phoneStep === "playing"
+                            ? "正在播放　16:58｜市立医院住院处"
+                            : "留言 01 已选择｜按 ▶ 播放"}
+                    </span>
+                    <i>
+                      {phoneStep === "idle"
+                        ? "先找到语音信箱。"
+                        : phoneStep === "mailbox"
+                          ? "按下数字 1。"
+                          : phoneStep === "playing"
+                            ? "声音来自听筒内部。"
+                            : "不要读取文字，听完它。"}
+                    </i>
+                  </div>
+                </div>
+              )}
+              {caseFocus === "badge" && (
+                <figure className="scene-object badge-object">
+                  <img
+                    src={asset("objects/lin-suyun-badge.webp")}
+                    alt="林素云的市政档案中心竖版工牌"
+                  />
+                  <figcaption>照片被印在纸芯里。划痕从她的脸上穿过去。</figcaption>
+                </figure>
+              )}
+              {caseFocus === "monitor" && (
+                <div className="case-screen">
+                  <div className="case-bar">
+                    <span>安置资格审核系统　/　终端 04</span>
+                    <b>17:42:16</b>
+                  </div>
+                  <div className="case-heading">
+                    <div>
+                      <small>当前经办人</small>
+                      <b>林素云　A-071</b>
+                    </div>
+                    <div>
+                      <small>本月差错率</small>
+                      <b>0.00%</b>
+                    </div>
+                    <div>
+                      <small>今日待处理</small>
+                      <b>17</b>
+                    </div>
+                  </div>
+                  <div className="case-file">
+                    <div className="case-file-title">
+                      <span>申请编号 HS-0416-273</span>
+                      <b>材料状态：不完整</b>
+                    </div>
+                    <h1>临时安置资格申请</h1>
+                    <p>申请人：周静　｜　家庭成员：3 人　｜　申请类型：紧急安置</p>
+                    <div className="evidence-grid">
+                      <button
+                        className={caseEvidence.includes("family") ? "checked" : ""}
+                        onClick={() =>
+                          setCaseEvidence((v) => (v.includes("family") ? v : [...v, "family"]))
+                        }
+                      >
+                        <span>家庭关系证明</span>
+                        <b>
+                          {caseEvidence.includes("family") ? "独自抚养两名未成年子女" : "点击核验"}
+                        </b>
+                      </button>
+                      <button
+                        className={caseEvidence.includes("income") ? "checked" : ""}
+                        onClick={() =>
+                          setCaseEvidence((v) => (v.includes("income") ? v : [...v, "income"]))
+                        }
+                      >
+                        <span>收入证明</span>
+                        <b>
+                          {caseEvidence.includes("income") ? "低于安置标准 31%｜符合" : "点击核验"}
+                        </b>
+                      </button>
+                      <button
+                        className={caseEvidence.includes("residence") ? "checked" : ""}
+                        onClick={() =>
+                          setCaseEvidence((v) =>
+                            v.includes("residence") ? v : [...v, "residence"],
+                          )
+                        }
+                      >
+                        <span>居住年限</span>
+                        <b>
+                          {caseEvidence.includes("residence") ? "连续居住 8 年｜符合" : "点击核验"}
+                        </b>
+                      </button>
+                      <button
+                        className={caseEvidence.includes("time") ? "late checked" : ""}
+                        onClick={() =>
+                          setCaseEvidence((v) => (v.includes("time") ? v : [...v, "time"]))
+                        }
+                      >
+                        <span>收件时间</span>
+                        <b>
+                          {caseEvidence.includes("time")
+                            ? "截止 04/16｜收到 04/17 00:03"
+                            : "点击核验"}
+                        </b>
+                      </button>
+                    </div>
+                  </div>
+                  {caseEvidence.length < 4 ? (
+                    <div className="case-prompt">请完成 4 项材料核验后提交处理意见。</div>
+                  ) : !caseDecision ? (
+                    <div className="decision-panel">
+                      <div className="known-condition">
+                        <span>已知条件</span>申请人符合实际困难标准；材料晚交 3
+                        分钟。你可以决定如何处理，但所有操作都会写入个人绩效记录。
+                      </div>
+                      <h2>你实际会怎样处理？</h2>
+                      <div className="decision-list">
+                        {Object.entries(caseDecisions).map(([key, item]) => (
+                          <button key={key} onClick={() => setCaseDecision(key)}>
+                            <b>{item.title}</b>
+                            <span>{item.consequence}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="decision-result">
+                      <span>处理意见已写入</span>
+                      <h2>{caseDecisions[caseDecision].title}</h2>
+                      <p>{caseDecisions[caseDecision].record}</p>
+                      <small>{caseDecisions[caseDecision].consequence}</small>
+                      <div className="future-record">该理由将在后续调查中作为你的正式陈述。</div>
+                      <button className="action locked">
+                        <LockKeyhole /> 等待下一份文件
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+    </main>
+  );
+}
