@@ -34,11 +34,12 @@ const echoes=[
 ];
 
 export default function Home(){
-const[stage,setStage]=useState<Stage>('boot');const[gender,setGender]=useState<Gender>('female');const[index,setIndex]=useState(0);const[answers,setAnswers]=useState<FunctionKey[]>([]);const[weights,setWeights]=useState<number[]>([]);const[muted,setMuted]=useState(false);const[noticed,setNoticed]=useState(0);const[echo,setEcho]=useState('');const[locked,setLocked]=useState(false);const[consent,setConsent]=useState(false);const[anomalyKind,setAnomalyKind]=useState('');const card=useRef<HTMLDivElement>(null);
+const previewParams=new URLSearchParams(window.location.search);const requestedType=(previewParams.get('result')||'').toUpperCase();const directType=Object.hasOwn(stacks,requestedType)?requestedType:'';const requestedGender=previewParams.get('gender');
+const[stage,setStage]=useState<Stage>(directType?'reveal':'boot');const[gender,setGender]=useState<Gender>(requestedGender==='male'?'male':'female');const[index,setIndex]=useState(0);const[answers,setAnswers]=useState<FunctionKey[]>([]);const[weights,setWeights]=useState<number[]>([]);const[muted,setMuted]=useState(false);const[noticed,setNoticed]=useState(directType?1:0);const[echo,setEcho]=useState('');const[locked,setLocked]=useState(false);const[consent,setConsent]=useState(false);const[anomalyKind,setAnomalyKind]=useState('');const card=useRef<HTMLDivElement>(null);
 useEffect(()=>{document.title='观察者登记｜16'},[]);
 const scores=useMemo(()=>{const s={} as Record<FunctionKey,number>;(['Se','Si','Ne','Ni','Te','Ti','Fe','Fi'] as FunctionKey[]).forEach(k=>s[k]=0);answers.forEach(k=>s[k]++);return s},[answers]);
 const matches=useMemo(()=>Object.entries(stacks).map(([name,stack])=>({name,value:stack.reduce((sum,fn,i)=>sum+scores[fn]*[4,3,2,1][i],0)})).sort((a,b)=>b.value-a.value),[scores]);
-const type=matches[0]?.name||'INTJ';
+const type=directType||matches[0]?.name||'INTJ';
 const stack=stacks[type];
 const confidence=Math.max(52,Math.min(94,Math.round(58+(matches[0]?.value-(matches[1]?.value||0))*4)));
 const choose=(option:Option,side:0|1,weight:1|2)=>{if(locked)return;setLocked(true);setAnomalyKind(['drift','rewind','double','presence'][(index+side+weight)%4]);setEcho(option.echo||echoes[(index*2+side)%echoes.length]);const next=[...answers,...Array(weight).fill(option.fn)];setTimeout(()=>{setAnswers(next);setWeights([...weights,weight]);setEcho('');setAnomalyKind('');setLocked(false);if(index===questions.length-1){setStage('reveal');setTimeout(()=>setNoticed(1),1800)}else setIndex(index+1)},760)};
