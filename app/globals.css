@@ -2189,6 +2189,23 @@ header {
   border-radius: 8px;
   background: transparent;
   cursor: pointer;
+  transform: perspective(420px) translateZ(0);
+  transform-origin: 50% 75%;
+  transition:
+    transform 90ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 90ms,
+    background 90ms;
+}
+.physical-key::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  opacity: 0;
+  box-shadow:
+    inset 0 7px 8px #000b,
+    inset 0 -1px 1px #ddd4,
+    0 1px 0 #14140f;
 }
 .physical-key:hover,
 .physical-key:focus-visible {
@@ -2197,9 +2214,18 @@ header {
   box-shadow: 0 0 18px #d9e0bd48;
   outline: none;
 }
-.physical-key:active {
-  transform: translateY(2px);
-  box-shadow: inset 0 2px 5px #0008;
+.physical-key:active,
+.physical-key.pressed {
+  transform: perspective(420px) translateY(5px) scale(0.92) rotateX(-5deg);
+  background: #05060454;
+  box-shadow:
+    inset 0 8px 9px #000c,
+    0 0 0 2px #1718118c;
+  animation: key-sink 260ms cubic-bezier(0.22, 0.9, 0.34, 1);
+}
+.physical-key:active::before,
+.physical-key.pressed::before {
+  opacity: 1;
 }
 .physical-key:disabled {
   pointer-events: none;
@@ -2221,6 +2247,110 @@ header {
   top: 61.4%;
   width: 8.7%;
   height: 8.4%;
+}
+.phone-lcd {
+  position: absolute;
+  left: 45.1%;
+  top: 30.5%;
+  z-index: 3;
+  width: 22.2%;
+  height: 7%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  transform: rotate(-0.8deg) skewX(1deg);
+  border-radius: 3px;
+  background: #657060b8;
+  color: #172019;
+  mix-blend-mode: multiply;
+  font:
+    clamp(7px, 1.2vw, 17px)/1 "Courier New",
+    monospace;
+  letter-spacing: 0.045em;
+  text-shadow: 1px 0 #26312966;
+  animation: lcd-breathe 3.8s steps(1) infinite;
+  pointer-events: none;
+}
+.phone-lcd::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, #1820181f 4px);
+}
+.phone-lcd span {
+  animation: lcd-jump 6.4s steps(1) infinite;
+}
+.phone-lcd.lcd-mailbox,
+.phone-lcd.lcd-selected {
+  animation:
+    lcd-change 520ms steps(3),
+    lcd-breathe 3.8s steps(1) 520ms infinite;
+}
+.phone-lcd.lcd-playing span {
+  animation: lcd-playing 950ms steps(2) infinite;
+}
+@keyframes key-sink {
+  0% {
+    transform: perspective(420px) translateY(0) scale(1);
+  }
+  38% {
+    transform: perspective(420px) translateY(6px) scale(0.9) rotateX(-7deg);
+  }
+  72% {
+    transform: perspective(420px) translateY(4px) scale(0.93) rotateX(-4deg);
+  }
+  100% {
+    transform: perspective(420px) translateY(5px) scale(0.92) rotateX(-5deg);
+  }
+}
+@keyframes lcd-change {
+  0% {
+    opacity: 0.25;
+    transform: translateY(-2px) rotate(-0.8deg) skewX(1deg);
+  }
+  32% {
+    opacity: 0.9;
+    transform: translateY(1px) rotate(-0.8deg) skewX(1deg);
+  }
+  67% {
+    opacity: 0.45;
+  }
+}
+@keyframes lcd-breathe {
+  0%,
+  91%,
+  100% {
+    filter: brightness(0.9);
+  }
+  92% {
+    filter: brightness(1.25);
+  }
+  94% {
+    filter: brightness(0.62);
+  }
+}
+@keyframes lcd-jump {
+  0%,
+  84%,
+  100% {
+    transform: translateY(0);
+  }
+  85% {
+    transform: translateY(-1px);
+  }
+  86% {
+    transform: translateY(1px);
+  }
+}
+@keyframes lcd-playing {
+  0% {
+    transform: translateX(0);
+    opacity: 0.95;
+  }
+  50% {
+    transform: translateX(1px);
+    opacity: 0.72;
+  }
 }
 .phone-readout {
   display: flex;

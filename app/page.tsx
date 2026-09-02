@@ -445,6 +445,7 @@ export default function Home() {
   const [caseDecision, setCaseDecision] = useState("");
   const [caseFocus, setCaseFocus] = useState("");
   const [phoneStep, setPhoneStep] = useState<"idle" | "mailbox" | "selected" | "playing">("idle");
+  const [pressedPhoneKey, setPressedPhoneKey] = useState("");
   const card = useRef<HTMLDivElement>(null);
   const voicemail = useRef<HTMLAudioElement>(null);
   const sound = useRef<{ ctx: AudioContext; master: GainNode } | null>(null);
@@ -597,6 +598,14 @@ export default function Home() {
   const openCaseObject = (object: string) => {
     setCaseFocus(object);
     if (object === "phone") setPhoneStep("idle");
+  };
+  const pressPhoneKey = (key: string, action: () => void) => {
+    setPressedPhoneKey("");
+    window.requestAnimationFrame(() => {
+      setPressedPhoneKey(key);
+      action();
+      window.setTimeout(() => setPressedPhoneKey(""), 260);
+    });
   };
   const playVoicemail = () => {
     if (phoneStep !== "selected" && phoneStep !== "playing") return;
@@ -1096,22 +1105,33 @@ export default function Home() {
                 <div className="scene-object phone-object">
                   <div className="object-image">
                     <img src={asset("objects/office-voicemail-phone.webp")} alt="桌面上的旧座机" />
+                    <div className={`phone-lcd lcd-${phoneStep}`} aria-hidden="true">
+                      <span>
+                        {phoneStep === "idle"
+                          ? "1 NEW MESSAGE"
+                          : phoneStep === "mailbox"
+                            ? "MAILBOX 01"
+                            : phoneStep === "playing"
+                              ? "PLAY 00:01"
+                              : "MESSAGE 01"}
+                      </span>
+                    </div>
                     <button
-                      className="physical-key voicemail-key"
+                      className={`physical-key voicemail-key ${pressedPhoneKey === "voicemail" ? "pressed" : ""}`}
                       aria-label="打开语音信箱"
-                      onClick={() => setPhoneStep("mailbox")}
+                      onClick={() => pressPhoneKey("voicemail", () => setPhoneStep("mailbox"))}
                     />
                     <button
-                      className="physical-key one-key"
+                      className={`physical-key one-key ${pressedPhoneKey === "one" ? "pressed" : ""}`}
                       aria-label="选择一号留言"
                       disabled={phoneStep === "idle"}
-                      onClick={() => setPhoneStep("selected")}
+                      onClick={() => pressPhoneKey("one", () => setPhoneStep("selected"))}
                     />
                     <button
-                      className="physical-key play-key"
+                      className={`physical-key play-key ${pressedPhoneKey === "play" ? "pressed" : ""}`}
                       aria-label="播放留言"
                       disabled={phoneStep !== "selected" && phoneStep !== "playing"}
-                      onClick={playVoicemail}
+                      onClick={() => pressPhoneKey("play", playVoicemail)}
                     />
                   </div>
                   <div className="phone-readout" aria-live="polite">
