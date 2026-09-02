@@ -2184,47 +2184,56 @@ header {
 }
 .physical-key {
   position: absolute;
-  z-index: 2;
-  border: 1px solid transparent;
+  z-index: 4;
+  padding: 0;
+  border: 0;
   border-radius: 8px;
   background: transparent;
   cursor: pointer;
-  transform: perspective(420px) translateZ(0);
-  transform-origin: 50% 75%;
-  transition:
-    transform 90ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 90ms,
-    background 90ms;
 }
 .physical-key::before {
   content: "";
   position: absolute;
-  inset: -3px;
+  z-index: 2;
+  inset: 0;
   border-radius: inherit;
   opacity: 0;
+  background-image: url("/16/objects/office-voicemail-phone.webp");
+  background-repeat: no-repeat;
+  filter: brightness(0.96) contrast(1.05);
+  transform-origin: 50% 72%;
+  will-change: transform;
+}
+.physical-key::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -2px;
+  border-radius: inherit;
+  opacity: 0;
+  background: #171812;
   box-shadow:
-    inset 0 7px 8px #000b,
-    inset 0 -1px 1px #ddd4,
-    0 1px 0 #14140f;
+    inset 0 8px 7px #000e,
+    inset 0 -2px 2px #9c988122;
 }
 .physical-key:hover,
 .physical-key:focus-visible {
-  border-color: #d9e0bd99;
-  background: #d9e0bd12;
-  box-shadow: 0 0 18px #d9e0bd48;
   outline: none;
+}
+.physical-key:focus-visible {
+  box-shadow: 0 0 0 2px #d9e0bd77;
 }
 .physical-key:active,
 .physical-key.pressed {
-  transform: perspective(420px) translateY(5px) scale(0.92) rotateX(-5deg);
-  background: #05060454;
-  box-shadow:
-    inset 0 8px 9px #000c,
-    0 0 0 2px #1718118c;
-  animation: key-sink 260ms cubic-bezier(0.22, 0.9, 0.34, 1);
+  z-index: 5;
 }
 .physical-key:active::before,
 .physical-key.pressed::before {
+  opacity: 1;
+  animation: photographed-key-sink 260ms cubic-bezier(0.18, 0.84, 0.3, 1) both;
+}
+.physical-key:active::after,
+.physical-key.pressed::after {
   opacity: 1;
 }
 .physical-key:disabled {
@@ -2236,17 +2245,29 @@ header {
   width: 10.2%;
   height: 8.5%;
 }
+.voicemail-key::before {
+  background-size: 980.4% auto;
+  background-position: 57.35% 68.96%;
+}
 .one-key {
   left: 44.2%;
   top: 36.8%;
   width: 8.7%;
   height: 7.4%;
 }
+.one-key::before {
+  background-size: 1149.4% auto;
+  background-position: 48.41% 39.74%;
+}
 .play-key {
   left: 59.4%;
   top: 61.4%;
   width: 8.7%;
   height: 8.4%;
+}
+.play-key::before {
+  background-size: 1149.4% auto;
+  background-position: 65.06% 67.03%;
 }
 .phone-lcd {
   position: absolute;
@@ -2289,18 +2310,22 @@ header {
 .phone-lcd.lcd-playing span {
   animation: lcd-playing 950ms steps(2) infinite;
 }
-@keyframes key-sink {
+@keyframes photographed-key-sink {
   0% {
-    transform: perspective(420px) translateY(0) scale(1);
+    transform: perspective(420px) translateY(0) scale(1) rotateX(0);
+    filter: brightness(1) contrast(1);
   }
-  38% {
-    transform: perspective(420px) translateY(6px) scale(0.9) rotateX(-7deg);
+  34% {
+    transform: perspective(420px) translateY(7px) scale(0.91) rotateX(-8deg);
+    filter: brightness(0.72) contrast(1.16);
   }
-  72% {
-    transform: perspective(420px) translateY(4px) scale(0.93) rotateX(-4deg);
+  68% {
+    transform: perspective(420px) translateY(5px) scale(0.93) rotateX(-5deg);
+    filter: brightness(0.8) contrast(1.11);
   }
   100% {
-    transform: perspective(420px) translateY(5px) scale(0.92) rotateX(-5deg);
+    transform: perspective(420px) translateY(4px) scale(0.94) rotateX(-4deg);
+    filter: brightness(0.84) contrast(1.08);
   }
 }
 @keyframes lcd-change {
