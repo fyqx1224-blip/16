@@ -577,8 +577,12 @@ export default function Home() {
   const [caseBranchStep, setCaseBranchStep] = useState(0);
   const [caseFocus, setCaseFocus] = useState("");
   const [phoneStep, setPhoneStep] = useState<"idle" | "mailbox" | "selected" | "playing">("idle");
+  const [voicemailHeard, setVoicemailHeard] = useState(false);
   const [pressedPhoneKey, setPressedPhoneKey] = useState("");
-  const [crtState, setCrtState] = useState<"off" | "boot" | "ready">("off");
+  const [crtState, setCrtState] = useState<"off" | "boot" | "login" | "ready">("off");
+  const [crtPassword, setCrtPassword] = useState("");
+  const [crtLoginError, setCrtLoginError] = useState("");
+  const [crtLoginAttempts, setCrtLoginAttempts] = useState(0);
   const [crtSelection, setCrtSelection] = useState(0);
   const [pressedCrtKey, setPressedCrtKey] = useState("");
   const card = useRef<HTMLDivElement>(null);
@@ -756,8 +760,24 @@ export default function Home() {
   };
   const finishVoicemail = () => {
     setPhoneStep("selected");
+    setVoicemailHeard(true);
     if (sound.current && !muted)
       sound.current.master.gain.setTargetAtTime(0.48, sound.current.ctx.currentTime, 0.5);
+  };
+  const submitCrtPassword = () => {
+    if (crtPassword === "07158273") {
+      setCrtLoginError("");
+      setCrtState("ready");
+      return;
+    }
+    const nextAttempts = crtLoginAttempts + 1;
+    setCrtLoginAttempts(nextAttempts);
+    setCrtPassword("");
+    setCrtLoginError(
+      nextAttempts >= 3
+        ? `密码错误。失败记录已写入安全日志（${nextAttempts}）。`
+        : "密码错误。请检查桌面记录。",
+    );
   };
   const pressCrtKey = (key: string, action: () => void) => {
     setPressedCrtKey(key);
@@ -769,7 +789,7 @@ export default function Home() {
     pressCrtKey("power", () => {
       startSound();
       setCrtState("boot");
-      window.setTimeout(() => setCrtState("ready"), 2200);
+      window.setTimeout(() => setCrtState("login"), 2200);
     });
   };
   const useCrtKeyboard = (key: "w" | "a" | "s" | "d" | "enter" | "escape") => {
@@ -807,6 +827,7 @@ export default function Home() {
   useEffect(() => {
     if (stage !== "case" || caseFocus !== "monitor") return;
     const handleKey = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement) return;
       const key = event.key.toLowerCase();
       if (!["w", "a", "s", "d", "enter", "escape"].includes(key)) return;
       event.preventDefault();
@@ -1290,7 +1311,7 @@ export default function Home() {
                     alt="周静的临时安置资格申请文件"
                   />
                   <figcaption>
-                    <span>纸张右上角盖着很浅的“退回待复核”。部分说明被档案夹边缘压住。</span>
+                    <span>申请编号：HS-0416-273。纸张右上角盖着很浅的“退回待复核”。</span>
                     <button onClick={() => openCaseObject("monitor")}>到终端核验材料</button>
                   </figcaption>
                 </figure>
@@ -1370,7 +1391,9 @@ export default function Home() {
                           ? "按下数字 1。"
                           : phoneStep === "playing"
                             ? "声音来自听筒内部。"
-                            : "不要读取文字，听完它。"}
+                            : voicemailHeard
+                              ? "留言登记时间：16:58。"
+                              : "不要读取文字，听完它。"}
                     </i>
                   </div>
                 </div>
@@ -1381,7 +1404,7 @@ export default function Home() {
                     src={asset("objects/lin-suyun-badge.webp")}
                     alt="林素云的市政档案中心竖版工牌"
                   />
-                  <figcaption>照片被印在纸芯里。划痕从她的脸上穿过去。</figcaption>
+                  <figcaption>林素云，工号 A-071。照片印在纸芯里，划痕从她的脸上穿过去。</figcaption>
                 </figure>
               )}
               {caseFocus === "monitor" && (
@@ -1400,6 +1423,44 @@ export default function Home() {
                           <span>LOADING MUNICIPAL RECORDS SYSTEM</span>
                           <b>TERMINAL 04 / OPERATOR A-071</b>
                         </div>
+                      </div>
+                    )}
+                    {crtState === "login" && (
+                      <div className="xp-login-screen">
+                        <div className="xp-login-brand">
+                          <i>市政档案中心</i>
+                          <b>Windows XP Professional</b>
+                          <span>要开始使用，请登录</span>
+                        </div>
+                        <form
+                          className="xp-login-card"
+                          onSubmit={(event) => {
+                            event.preventDefault();
+                            submitCrtPassword();
+                          }}
+                        >
+                          <div className="xp-user-icon">林</div>
+                          <div>
+                            <b>林素云</b>
+                            <label htmlFor="crt-password">密码</label>
+                            <input
+                              id="crt-password"
+                              type="password"
+                              inputMode="numeric"
+                              autoFocus
+                              value={crtPassword}
+                              onChange={(event) => {
+                                setCrtPassword(event.target.value.replace(/\D/g, "").slice(0, 8));
+                                setCrtLoginError("");
+                              }}
+                              aria-label="输入终端密码"
+                            />
+                            <button type="submit">→</button>
+                            <small>密码提示：工号后三位／留言分钟／申请编号后三位</small>
+                            {crtLoginError && <em>{crtLoginError}</em>}
+                          </div>
+                        </form>
+                        <footer>登录到：DA-MUNICIPAL　　关闭计算机</footer>
                       </div>
                     )}
                     {crtState === "ready" && (

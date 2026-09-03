@@ -1771,6 +1771,87 @@ html .photo-space .awakened .eye.right {
   color: #000;
   font-family: SimSun, "宋体", sans-serif;
 }
+.xp-login-screen {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 1fr auto 22px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #003399 0 8%, #5a7edc 8% 91%, #003399 91%);
+  color: #fff;
+  font-family: Tahoma, Arial, sans-serif;
+  text-shadow: none;
+}
+.xp-login-brand {
+  align-self: end;
+  padding: 0 8% 12px;
+  border-bottom: 1px solid #b9cffc;
+  text-align: right;
+}
+.xp-login-brand i,
+.xp-login-brand b,
+.xp-login-brand span {
+  display: block;
+  font-style: normal;
+}
+.xp-login-brand i { font-size: 10px; }
+.xp-login-brand b { margin-top: 2px; font: italic 700 14px/1.1 Arial, sans-serif; }
+.xp-login-brand span { margin-top: 5px; font-size: 7px; }
+.xp-login-card {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 8px;
+  width: 74%;
+  margin: 12px auto;
+  padding: 9px;
+  border: 1px solid #aec7ff;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #174ab1, #5d83db);
+  box-shadow: inset 0 1px #89a9ed;
+}
+.xp-user-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  background: linear-gradient(#d8d1ba, #8c876e);
+  color: #243754;
+  font: 700 19px SimSun, "宋体", serif;
+}
+.xp-login-card > div:last-child { position: relative; min-width: 0; }
+.xp-login-card b { display: block; margin-bottom: 4px; font-size: 9px; }
+.xp-login-card label { display: inline-block; width: 25px; font-size: 7px; }
+.xp-login-card input {
+  width: calc(100% - 52px);
+  height: 17px;
+  border: 1px solid #153e86;
+  background: #fff;
+  color: #000;
+  padding: 1px 3px;
+  font: 10px Tahoma, sans-serif;
+}
+.xp-login-card button {
+  width: 19px;
+  height: 19px;
+  margin-left: 3px;
+  border: 1px solid #fff;
+  border-radius: 3px;
+  background: linear-gradient(#79b363, #3b7f2c);
+  color: #fff;
+  font-weight: 700;
+}
+.xp-login-card small,
+.xp-login-card em { display: block; margin: 4px 0 0 25px; font-size: 6px; font-style: normal; }
+.xp-login-card small { color: #e7edff; }
+.xp-login-card em { color: #fff19d; }
+.xp-login-screen footer {
+  padding: 6px 8%;
+  border-top: 1px solid #6c91e9;
+  background: #003399;
+  font-size: 6px;
+}
 .legacy-titlebar {
   display: flex;
   align-items: center;
