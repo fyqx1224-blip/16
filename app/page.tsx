@@ -396,27 +396,27 @@ const caseDecisions: Record<string, { title: string; record: string; consequence
   reject: {
     title: "按退件处理",
     record: "缺《共同居住证明》原件。按受理细则第十二条退回，不进入补正程序。",
-    consequence: "退回后，本批次名额不予保留。",
+    consequence: "绩效：按时办结，计 1 件｜申请：本批次名额释放",
   },
   hold: {
     title: "挂起至明日下班前",
     record: "不提交结论，将本件暂留个人待办，等申请人补交原件。",
-    consequence: "系统没有此项操作。超时件计入当前经办人。",
+    consequence: "绩效：记 1 件超时，本月 800 元绩效奖取消｜申请：名额暂留",
   },
   notify: {
     title: "先退件，再打电话",
     record: "照常退回；使用申请表所留号码，告知缺件名称和重新申报办法。",
-    consequence: "外呼不属于规定程序，不生成办件记录。",
+    consequence: "绩效：退件按时，计 1 件｜问责：外呼被查实则书面说明",
   },
   alter: {
     title: "修改收件日期",
     record: "将签收栏的 04/17 00:03 改为 04/16 23:59，再按齐件提交。",
-    consequence: "校验可以通过。原始入库时间仍在夜间备份中。",
+    consequence: "绩效：按时办结，计 1 件｜问责：查实修改将停岗调查",
   },
   transfer: {
     title: "退回组内复核",
     record: "不签署意见，以“材料认定存疑”为由转入公共复核队列。",
-    consequence: "办结时限不变；下一位经办人可以直接退件。",
+    consequence: "绩效：本岗不计办结、不计超时｜申请：剩余 16 分钟",
   },
 };
 const caseBranches: Record<
@@ -1510,7 +1510,8 @@ export default function Home() {
                           <div className="decision-panel">
                             <div className="known-condition">
                               <span>已知条件</span>申请人符合实际困难标准；材料晚交 3
-                              分钟。你可以决定如何处理，但所有操作都会写入个人绩效记录。
+                              分钟。今天是月度结算日，这是你最后一件待办。当前按时办结率
+                              100%（39/39）；出现 1 件超时，本月 800 元绩效奖取消。
                             </div>
                             <h2>你实际会怎样处理？</h2>
                             <div className="decision-list">
