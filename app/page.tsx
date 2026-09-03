@@ -622,6 +622,57 @@ const caseFollowups: Record<
   },
 };
 
+type CaseRoom = "lin" | "corridor" | "chen" | "fax" | "supervisor" | "intake" | "backup";
+const branchSpaces: Record<
+  string,
+  { room: CaseRoom; place: string; time: string; trigger: string; reason: string }
+> = {
+  reject: {
+    room: "fax",
+    place: "传真接收室",
+    time: "17:52",
+    trigger: "办结提示刚消失，走廊尽头的传真机突然开始进纸。",
+    reason: "系统发现同一申请人在 04/14 留有接收缓存。若不核对，林素云刚签署的退件依据将与设备记录冲突。",
+  },
+  transfer: {
+    room: "chen",
+    place: "陈国平办公室／终端 07",
+    time: "18:04",
+    trigger: "走廊传来一声关门响。陈国平似乎刚刚离开。",
+    reason: "陈国平在 18 秒内退件，附件查阅为 0；一旦复核责任倒查，林素云的转件理由也会被重新审查。",
+  },
+  hold: {
+    room: "supervisor",
+    place: "组长办公室",
+    time: "19:08",
+    trigger: "电话被重重扣下。组长办公室的灯还亮着，门却没有锁。",
+    reason: "挂起由组长账户远程解除。林素云必须确认这是本人操作，还是有人借用了主管权限。",
+  },
+  notify: {
+    room: "intake",
+    place: "电子材料接收区",
+    time: "23:38",
+    trigger: "公共接收终端连续响了七次错误提示，随后打印机吐出一张拒收单。",
+    reason: "周静按林素云的电话说明重新上传，却被网关拒收；私下帮助是否留下正式痕迹，取决于接收终端里的失败记录。",
+  },
+  alter: {
+    room: "backup",
+    place: "地下冷备份室",
+    time: "18:12",
+    trigger: "楼下传来备份机启动的低鸣。今晚的审计镜像提前开始写入。",
+    reason: "修改后的时间与网关原值相差 251 秒。镜像一旦封存，林素云的改写和更早的异常收件都会永久保留。",
+  },
+};
+const roomScenes: Record<CaseRoom, string> = {
+  lin: "scenes/istj-office-1742.webp",
+  corridor: "scenes/archive-corridor-1750.png",
+  chen: "scenes/chen-office-1804.png",
+  fax: "scenes/fax-room-1752.png",
+  supervisor: "scenes/supervisor-office-1908.png",
+  intake: "scenes/materials-intake-2338.png",
+  backup: "scenes/cold-backup-room-1812.png",
+};
+
 export default function Home() {
   const previewParams = new URLSearchParams(window.location.search);
   const requestedType = (
@@ -650,7 +701,7 @@ export default function Home() {
   const [caseBranchStep, setCaseBranchStep] = useState(0);
   const [caseFollowupDecision, setCaseFollowupDecision] = useState("");
   const [caseFocus, setCaseFocus] = useState("");
-  const [caseRoom, setCaseRoom] = useState<"lin" | "corridor" | "chen">("lin");
+  const [caseRoom, setCaseRoom] = useState<CaseRoom>("lin");
   const [officeDoorUnlocked, setOfficeDoorUnlocked] = useState(false);
   const [phoneStep, setPhoneStep] = useState<"idle" | "mailbox" | "selected" | "playing">("idle");
   const [voicemailHeard, setVoicemailHeard] = useState(false);
@@ -1069,6 +1120,7 @@ export default function Home() {
   const recall = (key: string) =>
     setRecalled((items) => (items.includes(key) ? items : [...items, key]));
   const caseBranch = caseDecision ? caseBranches[caseDecision] : null;
+  const branchSpace = caseDecision ? branchSpaces[caseDecision] : null;
   const caseFollowup = caseDecision ? caseFollowups[caseDecision] : null;
   const caseOutcome = caseFollowupDecision
     ? caseFollowup?.choices.find((choice) => choice.id === caseFollowupDecision)?.outcome
@@ -1418,25 +1470,19 @@ export default function Home() {
           />
           <img
             className="scene-image"
-            src={asset(
-              caseRoom === "corridor"
-                ? "scenes/archive-corridor-1750.png"
-                : caseRoom === "chen"
-                  ? "scenes/chen-office-1804.png"
-                  : "scenes/istj-office-1742.webp",
-            )}
-            alt={caseRoom === "corridor" ? "档案中心走廊" : caseRoom === "chen" ? "陈国平的办公室" : "17:42 的市政档案办公室"}
+            src={asset(roomScenes[caseRoom])}
+            alt={caseRoom === "lin" ? "17:42 的市政档案办公室" : caseRoom === "corridor" ? "档案中心走廊" : branchSpace?.place || "档案中心内部空间"}
           />
           <div className="scene-vignette" />
-          <div className="scene-clock">2015.03.19　{caseRoom === "lin" ? "17:42" : caseRoom === "corridor" ? "17:50" : "18:04"}</div>
+          <div className="scene-clock">2015.03.19　{caseRoom === "lin" ? "17:42" : caseRoom === "corridor" ? "17:50" : branchSpace?.time || "18:04"}</div>
           <div className="scene-hint">
             {caseRoom === "lin"
               ? officeDoorUnlocked
-                ? "走廊传来一声关门响。陈国平似乎出去了——现在是检查终端 07 的机会。"
+                ? branchSpace?.trigger
                 : "查看桌面。需要处理的文件还在等你。"
               : caseRoom === "corridor"
-                ? "异常操作来自终端 07。陈国平办公室的门没有关严。"
-                : "陈国平不在。终端 07、传真机和抽屉都留在原处。"}
+                ? `${branchSpace?.reason || "记录出现矛盾"} 前往${branchSpace?.place || "相关办公室"}。`
+                : `${branchSpace?.place || "相关房间"}。${caseFollowup?.source || "关键设备"}仍可检查。`}
           </div>
           <button
             className="hotspot monitor"
@@ -1480,15 +1526,15 @@ export default function Home() {
           )}
           {caseRoom === "corridor" && (
             <>
-              <button className="hotspot chen-door" onClick={() => setCaseRoom("chen")}>
-                <span>半开的办公室</span>
+              <button className="hotspot chen-door" onClick={() => setCaseRoom(branchSpace?.room || "chen")}>
+                <span>{branchSpace?.place || "半开的办公室"}</span>
               </button>
               <button className="hotspot corridor-back" onClick={() => setCaseRoom("lin")}>
                 <span>返回林素云工位</span>
               </button>
             </>
           )}
-          {caseRoom === "chen" && (
+          {caseRoom !== "lin" && caseRoom !== "corridor" && (
             <>
               <button className="hotspot chen-desk" onClick={() => openCaseObject("chenEvidence")}>
                 <span>检查陈国平的工位</span>
@@ -1883,9 +1929,9 @@ export default function Home() {
                                   <b>{caseFollowup.time}</b>
                                 </div>
                                 <p className="followup-discovery">
-                                  刚才记录中的关键操作来自陈国平账户。共享目录显示：最后写入位置为陈国平办公室／终端 07。
+                                  {branchSpace?.reason}
                                 </p>
-                                <h2>走廊传来关门声。他似乎刚刚离开。现在可以检查终端 07。</h2>
+                                <h2>{branchSpace?.trigger} 现在可以前往{branchSpace?.place}。</h2>
                                 <button onClick={() => setCaseFocus("")}>返回办公室（Enter）</button>
                               </div>
                             ) : caseBranch && caseOutcome ? (

@@ -1520,6 +1520,29 @@ html .photo-space .awakened .eye.right {
 .room-chen > .hotspot.payment {
   display: none;
 }
+.room-fax > .hotspot.monitor,
+.room-fax > .hotspot.folder,
+.room-fax > .hotspot.phone,
+.room-fax > .hotspot.badge,
+.room-fax > .hotspot.payment,
+.room-supervisor > .hotspot.monitor,
+.room-supervisor > .hotspot.folder,
+.room-supervisor > .hotspot.phone,
+.room-supervisor > .hotspot.badge,
+.room-supervisor > .hotspot.payment,
+.room-intake > .hotspot.monitor,
+.room-intake > .hotspot.folder,
+.room-intake > .hotspot.phone,
+.room-intake > .hotspot.badge,
+.room-intake > .hotspot.payment,
+.room-backup > .hotspot.monitor,
+.room-backup > .hotspot.folder,
+.room-backup > .hotspot.phone,
+.room-backup > .hotspot.badge,
+.room-backup > .hotspot.payment {
+  display: none;
+}
+.room-backup .scene-image { object-position: center 54%; }
 .hotspot.exit-door {
   left: 34%;
   top: 13%;
