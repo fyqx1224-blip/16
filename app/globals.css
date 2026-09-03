@@ -2543,10 +2543,50 @@ header {
   color: #747b6e;
   font: 9px/1.6 monospace;
 }
+.file-object {
+  width: min(100%, 900px);
+  margin: auto;
+  border: 1px solid #595746;
+  background: #14140f;
+  box-shadow: 0 32px 110px #000;
+}
+.file-object > img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.file-object figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 11px 13px;
+  color: #7f8275;
+  font: 9px/1.6 monospace;
+}
+.file-object button {
+  flex: 0 0 auto;
+  border: 1px solid #70775f;
+  background: #171b14;
+  color: #c3cab4;
+  padding: 9px 14px;
+  font-size: 10px;
+  cursor: pointer;
+}
+.file-object button:hover {
+  border-color: var(--acid);
+  color: var(--acid);
+}
 @media (max-width: 620px) {
   .phone-readout {
     display: grid;
     gap: 3px;
+  }
+  .file-object figcaption {
+    display: grid;
+  }
+  .file-object button {
+    width: 100%;
   }
 }
 @media (max-width: 390px) {

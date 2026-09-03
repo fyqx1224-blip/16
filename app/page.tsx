@@ -1092,14 +1092,16 @@ export default function Home() {
                 ×
               </button>
               {caseFocus === "folder" && (
-                <div className="object-closeup paper-closeup">
-                  <span>HS-0416-273</span>
-                  <h2>临时安置资格申请</h2>
-                  <p>申请人：周静　　家庭成员：3 人</p>
-                  <p>申请类型：紧急安置</p>
-                  <p>纸页右上角盖有一个很浅的退件章。日期栏被文件夹压住了。</p>
-                  <button onClick={() => setCaseFocus("monitor")}>到终端核验材料</button>
-                </div>
+                <figure className="scene-object file-object">
+                  <img
+                    src={asset("objects/housing-application-file.webp")}
+                    alt="周静的临时安置资格申请文件"
+                  />
+                  <figcaption>
+                    <span>纸张右上角盖着很浅的“退回待复核”。部分说明被档案夹边缘压住。</span>
+                    <button onClick={() => openCaseObject("monitor")}>到终端核验材料</button>
+                  </figcaption>
+                </figure>
               )}
               {caseFocus === "phone" && (
                 <div className="scene-object phone-object">
