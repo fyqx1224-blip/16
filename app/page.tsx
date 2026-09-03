@@ -650,6 +650,8 @@ export default function Home() {
   const [caseBranchStep, setCaseBranchStep] = useState(0);
   const [caseFollowupDecision, setCaseFollowupDecision] = useState("");
   const [caseFocus, setCaseFocus] = useState("");
+  const [caseRoom, setCaseRoom] = useState<"lin" | "corridor" | "chen">("lin");
+  const [officeDoorUnlocked, setOfficeDoorUnlocked] = useState(false);
   const [phoneStep, setPhoneStep] = useState<"idle" | "mailbox" | "selected" | "playing">("idle");
   const [voicemailHeard, setVoicemailHeard] = useState(false);
   const [pressedPhoneKey, setPressedPhoneKey] = useState("");
@@ -879,6 +881,40 @@ export default function Home() {
     action();
     window.setTimeout(() => setPressedCrtKey(""), 230);
   };
+  const openOfficeDoor = () => {
+    startSound();
+    const ctx = sound.current?.ctx;
+    const master = sound.current?.master;
+    if (ctx && master) {
+      const now = ctx.currentTime;
+      const latch = ctx.createOscillator();
+      const latchGain = ctx.createGain();
+      latch.type = "square";
+      latch.frequency.setValueAtTime(132, now);
+      latch.frequency.exponentialRampToValueAtTime(54, now + 0.18);
+      latchGain.gain.setValueAtTime(0.08, now);
+      latchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      latch.connect(latchGain).connect(master);
+      latch.start(now);
+      latch.stop(now + 0.24);
+      const hinge = ctx.createOscillator();
+      const hingeGain = ctx.createGain();
+      hinge.type = "sawtooth";
+      hinge.frequency.setValueAtTime(42, now + 0.2);
+      hinge.frequency.linearRampToValueAtTime(31, now + 1.25);
+      hingeGain.gain.setValueAtTime(0.001, now);
+      hingeGain.gain.linearRampToValueAtTime(0.025, now + 0.35);
+      hingeGain.gain.exponentialRampToValueAtTime(0.001, now + 1.35);
+      hinge.connect(hingeGain).connect(master);
+      hinge.start(now + 0.18);
+      hinge.stop(now + 1.4);
+    }
+    setOfficeDoorUnlocked(true);
+    window.setTimeout(() => {
+      setCaseFocus("");
+      setCaseRoom("lin");
+    }, 850);
+  };
   const powerCrt = () => {
     if (crtState !== "off") return;
     pressCrtKey("power", () => {
@@ -896,20 +932,27 @@ export default function Home() {
       if (crtState !== "ready") return;
       if (caseDecision) {
         if (caseBranchStep < 4 && key === "enter") {
-          if (caseBranchStep === 3) setCrtSelection(0);
+          if (caseBranchStep === 3) {
+            setCrtSelection(0);
+            openOfficeDoor();
+          }
           setCaseBranchStep((step) => step + 1);
           return;
         }
         if (caseBranchStep === 4 && caseFollowup) {
-          const choices = caseFollowup.choices;
-          if (key === "w" || key === "a")
-            setCrtSelection((value) => (value - 1 + choices.length) % choices.length);
-          if (key === "s" || key === "d")
-            setCrtSelection((value) => (value + 1) % choices.length);
-          if (key === "enter") {
-            setCaseFollowupDecision(choices[crtSelection % choices.length].id);
-            setCaseBranchStep(5);
-          }
+          if (caseFocus === "chenEvidence") {
+            const choices = caseFollowup.choices;
+            if (key === "w" || key === "a")
+              setCrtSelection((value) => (value - 1 + choices.length) % choices.length);
+            if (key === "s" || key === "d")
+              setCrtSelection((value) => (value + 1) % choices.length);
+            if (key === "enter") {
+              setCaseFollowupDecision(choices[crtSelection % choices.length].id);
+              setCaseBranchStep(5);
+              setCaseRoom("lin");
+              setCaseFocus("monitor");
+            }
+          } else if (key === "enter") setCaseFocus("");
         }
         return;
       }
@@ -935,7 +978,7 @@ export default function Home() {
     });
   };
   useEffect(() => {
-    if (stage !== "case" || caseFocus !== "monitor") return;
+    if (stage !== "case" || !["monitor", "chenEvidence"].includes(caseFocus)) return;
     const handleKey = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement) return;
       const key = event.key.toLowerCase();
@@ -1366,7 +1409,7 @@ export default function Home() {
           </section>
         ))}
       {stage === "case" && (
-        <section className="flat-scene enter">
+        <section className={`flat-scene enter room-${caseRoom}`}>
           <audio
             ref={voicemail}
             src={asset("audio/hospital-voicemail.mp3")}
@@ -1375,12 +1418,20 @@ export default function Home() {
           />
           <img
             className="scene-image"
-            src={asset("scenes/istj-office-1742.webp")}
-            alt="17:42 的市政档案办公室"
+            src={asset(
+              caseRoom === "corridor"
+                ? "scenes/archive-corridor-1750.png"
+                : caseRoom === "chen"
+                  ? "scenes/chen-office-1804.png"
+                  : "scenes/istj-office-1742.webp",
+            )}
+            alt={caseRoom === "corridor" ? "档案中心走廊" : caseRoom === "chen" ? "陈国平的办公室" : "17:42 的市政档案办公室"}
           />
           <div className="scene-vignette" />
-          <div className="scene-clock">2015.03.19　17:42</div>
-          <div className="scene-hint">查看桌面。需要处理的文件还在等你。</div>
+          <div className="scene-clock">2015.03.19　{caseRoom === "lin" ? "17:42" : caseRoom === "corridor" ? "17:50" : "18:04"}</div>
+          <div className="scene-hint">
+            {caseRoom === "lin" ? (officeDoorUnlocked ? "身后的门刚刚自己开了。" : "查看桌面。需要处理的文件还在等你。") : caseRoom === "corridor" ? "右侧有一扇门没有关严。" : "陈国平不在。桌上的机器还没有断电。"}
+          </div>
           <button
             className="hotspot monitor"
             aria-label="查看审核终端"
@@ -1416,6 +1467,31 @@ export default function Home() {
           >
             <span>压在台历下的纸</span>
           </button>
+          {caseRoom === "lin" && officeDoorUnlocked && (
+            <button className="hotspot exit-door" onClick={() => setCaseRoom("corridor")}>
+              <span>走廊</span>
+            </button>
+          )}
+          {caseRoom === "corridor" && (
+            <>
+              <button className="hotspot chen-door" onClick={() => setCaseRoom("chen")}>
+                <span>半开的办公室</span>
+              </button>
+              <button className="hotspot corridor-back" onClick={() => setCaseRoom("lin")}>
+                <span>返回林素云工位</span>
+              </button>
+            </>
+          )}
+          {caseRoom === "chen" && (
+            <>
+              <button className="hotspot chen-desk" onClick={() => openCaseObject("chenEvidence")}>
+                <span>检查陈国平的工位</span>
+              </button>
+              <button className="hotspot chen-back" onClick={() => setCaseRoom("corridor")}>
+                <span>退回走廊</span>
+              </button>
+            </>
+          )}
           {caseFocus && (
             <div className="scene-modal" role="dialog" aria-modal="true">
               <button
@@ -1540,6 +1616,33 @@ export default function Home() {
                     </span>
                   </figcaption>
                 </figure>
+              )}
+              {caseFocus === "chenEvidence" && caseFollowup && (
+                <div className="scene-object chen-evidence-panel">
+                  <div className="branch-route">
+                    <span>{caseFollowup.source}</span>
+                    <b>{caseFollowup.time}</b>
+                  </div>
+                  <p className="followup-discovery">{caseFollowup.discovery}</p>
+                  <h2>{caseFollowup.prompt}</h2>
+                  <div className="followup-list">
+                    {caseFollowup.choices.map((choice, choiceIndex) => (
+                      <button
+                        key={choice.id}
+                        className={crtSelection % caseFollowup.choices.length === choiceIndex ? "keyboard-focus" : ""}
+                        onClick={() => {
+                          setCaseFollowupDecision(choice.id);
+                          setCaseBranchStep(5);
+                          setCaseRoom("lin");
+                          setCaseFocus("monitor");
+                        }}
+                      >
+                        <b>{choice.title}</b>
+                        <span>{choice.detail}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
               {caseFocus === "monitor" && (
                 <div className="crt-object">
@@ -1756,7 +1859,10 @@ export default function Home() {
                                   {caseBranch.records[caseBranchStep - 1].flag}
                                 </div>
                                 <button onClick={() => {
-                                  if (caseBranchStep === 3) setCrtSelection(0);
+                                  if (caseBranchStep === 3) {
+                                    setCrtSelection(0);
+                                    openOfficeDoor();
+                                  }
                                   setCaseBranchStep((step) => step + 1);
                                 }}>
                                   {caseBranchStep === 3
@@ -1765,28 +1871,14 @@ export default function Home() {
                                 </button>
                               </div>
                             ) : caseBranchStep === 4 && caseFollowup ? (
-                              <div className="followup-decision">
+                              <div className="followup-decision spatial-directive">
                                 <div className="branch-route">
                                   <span>{caseFollowup.source}</span>
                                   <b>{caseFollowup.time}</b>
                                 </div>
-                                <p className="followup-discovery">{caseFollowup.discovery}</p>
-                                <h2>{caseFollowup.prompt}</h2>
-                                <div className="followup-list">
-                                  {caseFollowup.choices.map((choice, choiceIndex) => (
-                                    <button
-                                      key={choice.id}
-                                      className={crtSelection % caseFollowup.choices.length === choiceIndex ? "keyboard-focus" : ""}
-                                      onClick={() => {
-                                        setCaseFollowupDecision(choice.id);
-                                        setCaseBranchStep(5);
-                                      }}
-                                    >
-                                      <b>{choice.title}</b>
-                                      <span>{choice.detail}</span>
-                                    </button>
-                                  ))}
-                                </div>
+                                <p className="followup-discovery">共享目录最后登录位置：陈国平办公室／终端 07。</p>
+                                <h2>门锁已经解除。离开终端，沿走廊查找终端 07。</h2>
+                                <button onClick={() => setCaseFocus("")}>返回办公室（Enter）</button>
                               </div>
                             ) : caseBranch && caseOutcome ? (
                               <div className="case-outcome">
