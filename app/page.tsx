@@ -759,10 +759,31 @@ export default function Home() {
       sound.current.master.gain.setTargetAtTime(0.13, sound.current.ctx.currentTime, 0.18);
   };
   const finishVoicemail = () => {
-    setPhoneStep("selected");
-    setVoicemailHeard(true);
-    if (sound.current && !muted)
-      sound.current.master.gain.setTargetAtTime(0.48, sound.current.ctx.currentTime, 0.5);
+    const finish = () => {
+      setPhoneStep("selected");
+      setVoicemailHeard(true);
+      if (sound.current && !muted)
+        sound.current.master.gain.setTargetAtTime(0.48, sound.current.ctx.currentTime, 0.5);
+    };
+    if (!("speechSynthesis" in window)) {
+      finish();
+      return;
+    }
+    const tail = new SpeechSynthesisUtterance(
+      "办理缴费时，请报原病案号尾号，五八二七。",
+    );
+    tail.lang = "zh-CN";
+    tail.rate = 0.84;
+    tail.pitch = 0.92;
+    tail.volume = 0.82;
+    const chineseVoice = window.speechSynthesis
+      .getVoices()
+      .find((voice) => voice.lang.toLowerCase().startsWith("zh"));
+    if (chineseVoice) tail.voice = chineseVoice;
+    tail.onend = finish;
+    tail.onerror = finish;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(tail);
   };
   const submitCrtPassword = () => {
     if (crtPassword === "201103195827") {
