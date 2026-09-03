@@ -551,7 +551,9 @@ const caseBranches: Record<
 
 export default function Home() {
   const previewParams = new URLSearchParams(window.location.search);
-  const requestedType = (previewParams.get("result") || "").toUpperCase();
+  const requestedType = (
+    previewParams.get("result") || previewParams.get("debugResult") || ""
+  ).toUpperCase();
   const directType = Object.hasOwn(stacks, requestedType) ? requestedType : "";
   const requestedGender = previewParams.get("gender");
   const directScene = previewParams.get("scene") === "istj-1742";
