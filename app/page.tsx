@@ -446,6 +446,9 @@ export default function Home() {
   const [caseFocus, setCaseFocus] = useState("");
   const [phoneStep, setPhoneStep] = useState<"idle" | "mailbox" | "selected" | "playing">("idle");
   const [pressedPhoneKey, setPressedPhoneKey] = useState("");
+  const [crtState, setCrtState] = useState<"off" | "boot" | "ready">("off");
+  const [crtSelection, setCrtSelection] = useState(0);
+  const [pressedCrtKey, setPressedCrtKey] = useState("");
   const card = useRef<HTMLDivElement>(null);
   const voicemail = useRef<HTMLAudioElement>(null);
   const sound = useRef<{ ctx: AudioContext; master: GainNode } | null>(null);
@@ -623,6 +626,33 @@ export default function Home() {
     setPhoneStep("selected");
     if (sound.current && !muted)
       sound.current.master.gain.setTargetAtTime(0.48, sound.current.ctx.currentTime, 0.5);
+  };
+  const pressCrtKey = (key: string, action: () => void) => {
+    setPressedCrtKey(key);
+    action();
+    window.setTimeout(() => setPressedCrtKey(""), 230);
+  };
+  const powerCrt = () => {
+    if (crtState !== "off") return;
+    pressCrtKey("power", () => {
+      startSound();
+      setCrtState("boot");
+      window.setTimeout(() => setCrtState("ready"), 2200);
+    });
+  };
+  const useCrtKeyboard = (key: "tab" | "enter" | "escape") => {
+    pressCrtKey(key, () => {
+      if (key === "escape") {
+        setCaseFocus("");
+        return;
+      }
+      if (crtState !== "ready") return;
+      if (key === "tab") setCrtSelection((value) => (value + 1) % 4);
+      if (key === "enter") {
+        const evidence = ["family", "income", "residence", "time"][crtSelection];
+        setCaseEvidence((items) => (items.includes(evidence) ? items : [...items, evidence]));
+      }
+    });
   };
   const scores = useMemo(() => {
     const s = {} as Record<FunctionKey, number>;
@@ -1198,124 +1228,162 @@ export default function Home() {
                     src={asset("objects/archive-crt-terminal.webp")}
                     alt="市政档案中心旧式审核终端"
                   />
-                  <div className="crt-glass">
-                    <div className="case-screen">
-                      <div className="case-bar">
-                        <span>安置资格审核系统　/　终端 04</span>
-                        <b>17:42:16</b>
-                      </div>
-                      <div className="case-heading">
+                  <div className={`crt-glass crt-${crtState}`}>
+                    {crtState === "boot" && (
+                      <div className="crt-boot-sequence" aria-live="polite">
+                        <i />
                         <div>
-                          <small>当前经办人</small>
-                          <b>林素云　A-071</b>
-                        </div>
-                        <div>
-                          <small>本月差错率</small>
-                          <b>0.00%</b>
-                        </div>
-                        <div>
-                          <small>今日待处理</small>
-                          <b>17</b>
+                          <span>ARCHIVE BIOS 2.7</span>
+                          <span>MEMORY CHECK ........ 640K OK</span>
+                          <span>LOADING MUNICIPAL RECORDS SYSTEM</span>
+                          <b>TERMINAL 04 / OPERATOR A-071</b>
                         </div>
                       </div>
-                      <div className="case-file">
-                        <div className="case-file-title">
-                          <span>申请编号 HS-0416-273</span>
-                          <b>材料状态：不完整</b>
+                    )}
+                    {crtState === "ready" && (
+                      <div className="case-screen">
+                        <div className="case-bar">
+                          <span>安置资格审核系统　/　终端 04</span>
+                          <b>17:42:16</b>
                         </div>
-                        <h1>临时安置资格申请</h1>
-                        <p>申请人：周静　｜　家庭成员：3 人　｜　申请类型：紧急安置</p>
-                        <div className="evidence-grid">
-                          <button
-                            className={caseEvidence.includes("family") ? "checked" : ""}
-                            onClick={() =>
-                              setCaseEvidence((v) => (v.includes("family") ? v : [...v, "family"]))
-                            }
-                          >
-                            <span>家庭关系证明</span>
-                            <b>
-                              {caseEvidence.includes("family")
-                                ? "独自抚养两名未成年子女"
-                                : "点击核验"}
-                            </b>
-                          </button>
-                          <button
-                            className={caseEvidence.includes("income") ? "checked" : ""}
-                            onClick={() =>
-                              setCaseEvidence((v) => (v.includes("income") ? v : [...v, "income"]))
-                            }
-                          >
-                            <span>收入证明</span>
-                            <b>
-                              {caseEvidence.includes("income")
-                                ? "低于安置标准 31%｜符合"
-                                : "点击核验"}
-                            </b>
-                          </button>
-                          <button
-                            className={caseEvidence.includes("residence") ? "checked" : ""}
-                            onClick={() =>
-                              setCaseEvidence((v) =>
-                                v.includes("residence") ? v : [...v, "residence"],
-                              )
-                            }
-                          >
-                            <span>居住年限</span>
-                            <b>
-                              {caseEvidence.includes("residence")
-                                ? "连续居住 8 年｜符合"
-                                : "点击核验"}
-                            </b>
-                          </button>
-                          <button
-                            className={caseEvidence.includes("time") ? "late checked" : ""}
-                            onClick={() =>
-                              setCaseEvidence((v) => (v.includes("time") ? v : [...v, "time"]))
-                            }
-                          >
-                            <span>收件时间</span>
-                            <b>
-                              {caseEvidence.includes("time")
-                                ? "截止 04/16｜收到 04/17 00:03"
-                                : "点击核验"}
-                            </b>
-                          </button>
+                        <div className="case-heading">
+                          <div>
+                            <small>当前经办人</small>
+                            <b>林素云　A-071</b>
+                          </div>
+                          <div>
+                            <small>本月差错率</small>
+                            <b>0.00%</b>
+                          </div>
+                          <div>
+                            <small>今日待处理</small>
+                            <b>17</b>
+                          </div>
                         </div>
+                        <div className="case-file">
+                          <div className="case-file-title">
+                            <span>申请编号 HS-0416-273</span>
+                            <b>材料状态：不完整</b>
+                          </div>
+                          <h1>临时安置资格申请</h1>
+                          <p>申请人：周静　｜　家庭成员：3 人　｜　申请类型：紧急安置</p>
+                          <div className="evidence-grid">
+                            <button
+                              className={`${caseEvidence.includes("family") ? "checked" : ""} ${crtSelection === 0 ? "keyboard-focus" : ""}`}
+                              onClick={() =>
+                                setCaseEvidence((v) =>
+                                  v.includes("family") ? v : [...v, "family"],
+                                )
+                              }
+                            >
+                              <span>家庭关系证明</span>
+                              <b>
+                                {caseEvidence.includes("family")
+                                  ? "独自抚养两名未成年子女"
+                                  : "点击核验"}
+                              </b>
+                            </button>
+                            <button
+                              className={`${caseEvidence.includes("income") ? "checked" : ""} ${crtSelection === 1 ? "keyboard-focus" : ""}`}
+                              onClick={() =>
+                                setCaseEvidence((v) =>
+                                  v.includes("income") ? v : [...v, "income"],
+                                )
+                              }
+                            >
+                              <span>收入证明</span>
+                              <b>
+                                {caseEvidence.includes("income")
+                                  ? "低于安置标准 31%｜符合"
+                                  : "点击核验"}
+                              </b>
+                            </button>
+                            <button
+                              className={`${caseEvidence.includes("residence") ? "checked" : ""} ${crtSelection === 2 ? "keyboard-focus" : ""}`}
+                              onClick={() =>
+                                setCaseEvidence((v) =>
+                                  v.includes("residence") ? v : [...v, "residence"],
+                                )
+                              }
+                            >
+                              <span>居住年限</span>
+                              <b>
+                                {caseEvidence.includes("residence")
+                                  ? "连续居住 8 年｜符合"
+                                  : "点击核验"}
+                              </b>
+                            </button>
+                            <button
+                              className={`${caseEvidence.includes("time") ? "late checked" : ""} ${crtSelection === 3 ? "keyboard-focus" : ""}`}
+                              onClick={() =>
+                                setCaseEvidence((v) => (v.includes("time") ? v : [...v, "time"]))
+                              }
+                            >
+                              <span>收件时间</span>
+                              <b>
+                                {caseEvidence.includes("time")
+                                  ? "截止 04/16｜收到 04/17 00:03"
+                                  : "点击核验"}
+                              </b>
+                            </button>
+                          </div>
+                        </div>
+                        {caseEvidence.length < 4 ? (
+                          <div className="case-prompt">请完成 4 项材料核验后提交处理意见。</div>
+                        ) : !caseDecision ? (
+                          <div className="decision-panel">
+                            <div className="known-condition">
+                              <span>已知条件</span>申请人符合实际困难标准；材料晚交 3
+                              分钟。你可以决定如何处理，但所有操作都会写入个人绩效记录。
+                            </div>
+                            <h2>你实际会怎样处理？</h2>
+                            <div className="decision-list">
+                              {Object.entries(caseDecisions).map(([key, item]) => (
+                                <button key={key} onClick={() => setCaseDecision(key)}>
+                                  <b>{item.title}</b>
+                                  <span>{item.consequence}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="decision-result">
+                            <span>处理意见已写入</span>
+                            <h2>{caseDecisions[caseDecision].title}</h2>
+                            <p>{caseDecisions[caseDecision].record}</p>
+                            <small>{caseDecisions[caseDecision].consequence}</small>
+                            <div className="future-record">
+                              该理由将在后续调查中作为你的正式陈述。
+                            </div>
+                            <button className="action locked">
+                              <LockKeyhole /> 等待下一份文件
+                            </button>
+                          </div>
+                        )}
                       </div>
-                      {caseEvidence.length < 4 ? (
-                        <div className="case-prompt">请完成 4 项材料核验后提交处理意见。</div>
-                      ) : !caseDecision ? (
-                        <div className="decision-panel">
-                          <div className="known-condition">
-                            <span>已知条件</span>申请人符合实际困难标准；材料晚交 3
-                            分钟。你可以决定如何处理，但所有操作都会写入个人绩效记录。
-                          </div>
-                          <h2>你实际会怎样处理？</h2>
-                          <div className="decision-list">
-                            {Object.entries(caseDecisions).map(([key, item]) => (
-                              <button key={key} onClick={() => setCaseDecision(key)}>
-                                <b>{item.title}</b>
-                                <span>{item.consequence}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="decision-result">
-                          <span>处理意见已写入</span>
-                          <h2>{caseDecisions[caseDecision].title}</h2>
-                          <p>{caseDecisions[caseDecision].record}</p>
-                          <small>{caseDecisions[caseDecision].consequence}</small>
-                          <div className="future-record">
-                            该理由将在后续调查中作为你的正式陈述。
-                          </div>
-                          <button className="action locked">
-                            <LockKeyhole /> 等待下一份文件
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
+                  <button
+                    className={`crt-physical-key crt-power-key ${pressedCrtKey === "power" ? "pressed" : ""}`}
+                    aria-label={crtState === "off" ? "开启显示器" : "显示器已开启"}
+                    onClick={powerCrt}
+                  />
+                  <button
+                    className={`crt-physical-key crt-escape-key ${pressedCrtKey === "escape" ? "pressed" : ""}`}
+                    aria-label="按下键盘 Esc 键返回"
+                    onClick={() => useCrtKeyboard("escape")}
+                  />
+                  <button
+                    className={`crt-physical-key crt-tab-key ${pressedCrtKey === "tab" ? "pressed" : ""}`}
+                    aria-label="按下键盘 Tab 键切换材料"
+                    onClick={() => useCrtKeyboard("tab")}
+                  />
+                  <button
+                    className={`crt-physical-key crt-enter-key ${pressedCrtKey === "enter" ? "pressed" : ""}`}
+                    aria-label="按下键盘 Enter 键核验材料"
+                    onClick={() => useCrtKeyboard("enter")}
+                  />
+                  {crtState === "off" && <div className="crt-power-hint">按下显示器电源键</div>}
                 </div>
               )}
             </div>

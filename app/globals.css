@@ -1617,6 +1617,217 @@ html .photo-space .awakened .eye.right {
   margin-top: 7px;
   padding: 8px;
 }
+.crt-glass.crt-off {
+  background: #030604f2;
+  box-shadow:
+    inset 0 0 45px #000,
+    inset 0 0 100px #000;
+  animation: none;
+}
+.crt-boot-sequence {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #020604;
+  color: #9eb391;
+  font:
+    clamp(5px, 0.72vw, 10px)/1.75 "Courier New",
+    monospace;
+}
+.crt-boot-sequence > i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #e5f3d6;
+  box-shadow: 0 0 14px #d8f4c8;
+  animation: crt-beam-open 720ms ease-out both;
+}
+.crt-boot-sequence > div {
+  display: grid;
+  gap: 2px;
+  padding: 8%;
+  opacity: 0;
+  animation: crt-boot-copy 1.25s steps(5) 720ms both;
+}
+.crt-boot-sequence span,
+.crt-boot-sequence b {
+  display: block;
+  font-weight: 400;
+}
+.crt-boot-sequence b {
+  margin-top: 7px;
+  color: #d1ddc7;
+}
+.crt-physical-key {
+  position: absolute;
+  z-index: 12;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.crt-physical-key::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  opacity: 0;
+  background-image: url("/16/objects/archive-crt-terminal.webp");
+  background-repeat: no-repeat;
+}
+.crt-physical-key::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -1px;
+  opacity: 0;
+  background: #191a14;
+  box-shadow: inset 0 3px 4px #000d;
+}
+.crt-physical-key.pressed::before {
+  opacity: 1;
+  animation: crt-key-depress 230ms ease-out both;
+}
+.crt-physical-key.pressed::after {
+  opacity: 1;
+}
+.crt-power-key {
+  left: 69.15%;
+  top: 72.2%;
+  width: 3.5%;
+  height: 3.4%;
+}
+.crt-power-key::before {
+  background-size: 2857% auto;
+  background-position: 71.75% 74.75%;
+}
+.crt-escape-key {
+  left: 18.45%;
+  top: 88.1%;
+  width: 4.1%;
+  height: 4.8%;
+}
+.crt-escape-key::before,
+.crt-tab-key::before {
+  background-size: 2439% auto;
+  background-position: 19.25% 92.1%;
+}
+.crt-tab-key {
+  left: 18.1%;
+  top: 93.15%;
+  width: 5.5%;
+  height: 4.9%;
+}
+.crt-tab-key::before {
+  background-size: 1818% auto;
+  background-position: 19.15% 97.4%;
+}
+.crt-enter-key {
+  left: 76.1%;
+  top: 93.1%;
+  width: 6.7%;
+  height: 5.1%;
+}
+.crt-enter-key::before {
+  background-size: 1492.5% auto;
+  background-position: 81.55% 97.6%;
+}
+.crt-power-hint {
+  position: absolute;
+  right: 23.8%;
+  top: 67.8%;
+  z-index: 11;
+  padding: 5px 7px;
+  border-left: 1px solid #a8b793;
+  background: #090c09c9;
+  color: #aeb9a2;
+  font: 8px monospace;
+  pointer-events: none;
+  animation: power-hint 1.8s ease-in-out infinite;
+}
+.crt-glass .evidence-grid button.keyboard-focus {
+  outline: 1px solid #d6e4bd;
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 1px #263521;
+}
+@keyframes crt-beam-open {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  25% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  55% {
+    width: 92%;
+    height: 2px;
+    left: 4%;
+    transform: none;
+    border-radius: 0;
+  }
+  82% {
+    width: 100%;
+    height: 8%;
+    left: 0;
+    top: 46%;
+    opacity: 0.9;
+    border-radius: 0;
+  }
+  100% {
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    opacity: 0.08;
+    border-radius: 0;
+  }
+}
+@keyframes crt-boot-copy {
+  0% {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  18%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+  42% {
+    opacity: 0.62;
+    transform: translateX(1px);
+  }
+  45% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes crt-key-depress {
+  0% {
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+  42% {
+    transform: translateY(4px) scale(0.92);
+    filter: brightness(0.7);
+  }
+  72% {
+    transform: translateY(3px) scale(0.94);
+    filter: brightness(0.8);
+  }
+  100% {
+    transform: translateY(2px) scale(0.96);
+    filter: brightness(0.87);
+  }
+}
+@keyframes power-hint {
+  50% {
+    opacity: 0.48;
+  }
+}
 @keyframes crt-refresh {
   0%,
   46%,
