@@ -549,6 +549,79 @@ const caseBranches: Record<
   },
 };
 
+type CaseOutcome = {
+  applicant: string;
+  father: string;
+  career: string;
+  evidence: string;
+};
+type FollowupChoice = {
+  id: string;
+  title: string;
+  detail: string;
+  outcome: CaseOutcome;
+};
+const caseFollowups: Record<
+  string,
+  { time: string; source: string; discovery: string; prompt: string; choices: FollowupChoice[] }
+> = {
+  reject: {
+    time: "17:49",
+    source: "传真机接收缓存",
+    discovery: "缓存中找到一页 04/14 09:26 的《共同居住证明》。收件人栏是陈国平，状态为“未入库”。",
+    prompt: "名额将在 11 分钟后释放。你如何处理这页传真？",
+    choices: [
+      { id: "restore", title: "撤回退件，补录传真", detail: "以实际收件时间重新提交；系统会记录撤回。", outcome: { applicant: "名额保留，次日上午完成安置。", father: "床位担保延续，但 800 元需自行补缴。", career: "撤回记录列为操作差错；季度得分 92。", evidence: "传真原件与接收缓存一并归档。" } },
+      { id: "copy", title: "复印传真，不撤回", detail: "保留一份纸面副本；本次退件继续生效。", outcome: { applicant: "本批次名额释放，八日后失去联系。", father: "缴费在周五前补齐，来源不明。", career: "按时办结率保持 100%。", evidence: "副本藏在 071 号工位抽屉夹层，十一年后被发现。" } },
+      { id: "destroy", title: "清除缓存", detail: "不留下第二个收件时间。", outcome: { applicant: "系统始终认定材料逾期。", father: "床位担保未受影响。", career: "季度抽查得分 100。", evidence: "传真缓存被手工清空；删除操作保留在设备计数器中。" } },
+    ],
+  },
+  transfer: {
+    time: "18:04",
+    source: "复核岗临时文件",
+    discovery: "陈国平在 18 秒内退件，却在本地目录保存了一张 04/14 的传真扫描图。文件名为“不要入库”。",
+    prompt: "陈国平已经离开办公室。你仍能访问这台共享终端。",
+    choices: [
+      { id: "report", title: "连同日志上报监察", detail: "保留访问记录，以本人账户提交。", outcome: { applicant: "退件被撤销，名额暂时冻结。", father: "次日被要求重新审核床位担保。", career: "暂停经办权限 23 日，后恢复。", evidence: "扫描图、访问日志和传真缓存形成完整证据链。" } },
+      { id: "return", title: "退回给陈国平说明", detail: "要求他次日自行纠正。", outcome: { applicant: "扫描图在凌晨被删除，退件生效。", father: "床位担保正常续期。", career: "责任链仍只记录复核岗。", evidence: "只剩一条无法证明内容的文件访问记录。" } },
+      { id: "anonymous", title: "匿名打印后离开", detail: "不使用系统上报渠道。", outcome: { applicant: "三个月后因匿名材料重新取得申请资格。", father: "未被卷入调查。", career: "林素云继续任职，未被列为证人。", evidence: "打印件缺少来源，足以启动调查，不足以直接定责。" } },
+    ],
+  },
+  hold: {
+    time: "19:06",
+    source: "远程操作提示",
+    discovery: "组长账户正在解除挂起。屏幕同时弹出 04/14 传真回执，备注：“陈国平代收，暂勿登记。”",
+    prompt: "远程解除还需 90 秒。你只能先完成一项操作。",
+    choices: [
+      { id: "archive", title: "将回执写入正式附件", detail: "上传完成前不能阻止远程解除。", outcome: { applicant: "当晚仍被退件；复议后恢复顺位。", father: "床位担保被重新审核，治疗未中断。", career: "超时与越权各记一次，调离审核岗。", evidence: "传真回执进入不可删除的办件附件。" } },
+      { id: "lock", title: "断开网线，继续占件", detail: "保住名额，但附件仍只在本机。", outcome: { applicant: "次日上午补齐材料并入住。", father: "800 元未按时补齐，担保中止两日。", career: "以妨碍系统运行为由停岗。", evidence: "本机回执在停岗检查时被格式化。" } },
+      { id: "photograph", title: "拍下回执后允许解除", detail: "不改变今晚的系统结果。", outcome: { applicant: "失去本批次名额，后续去向不明。", father: "住院安排不变。", career: "仅损失当月绩效奖。", evidence: "照片十一年后从旧手机中恢复，时间戳完整。" } },
+    ],
+  },
+  notify: {
+    time: "23:36",
+    source: "材料接收网关",
+    discovery: "周静按电话说明上传了四张材料。系统拒收，但其中一张拍到了 04/14 传真回执的存根。",
+    prompt: "合规岗已开始调取你的外呼记录。你如何留下这次上传？",
+    choices: [
+      { id: "bind", title: "强制关联到原办件", detail: "以异常附件方式写入，无法再删除。", outcome: { applicant: "退件进入人工复议，十二日后获安置。", father: "床位担保继续，但林素云接受调查。", career: "因越权关联附件记过一次。", evidence: "四张上传材料与外呼记录共同保存。" } },
+      { id: "download", title: "下载到个人U盘", detail: "系统仍显示拒收，不留下关联关系。", outcome: { applicant: "未能及时恢复名额。", father: "未被合规岗联系。", career: "外呼被定性为一般工作提醒。", evidence: "U盘在办公室搬迁时遗失。" } },
+      { id: "deny", title: "删除外呼事由并退出", detail: "否认曾指导申请人重新上传。", outcome: { applicant: "七次上传均作为无效请求清理。", father: "床位担保正常。", career: "调查因证据不足终止。", evidence: "录音缺失四秒；删改时间与当前会话一致。" } },
+    ],
+  },
+  alter: {
+    time: "17:43",
+    source: "夜间备份预警",
+    discovery: "系统提示新时间与入库网关相差 251 秒。主管内线来电：“我可以替你关掉一次比对。”",
+    prompt: "申请已经通过。你要如何处理原始时间差？",
+    choices: [
+      { id: "confess", title: "恢复原值并提交说明", detail: "申请会重新进入待退回，但修改历史保留。", outcome: { applicant: "名额冻结，传真查明后获批。", father: "床位担保被暂停审核三日。", career: "主动报告后降为档案录入岗。", evidence: "原始值、修改值和书面说明全部保留。" } },
+      { id: "accept", title: "接受主管关闭比对", detail: "不再询问他为何能修改审计任务。", outcome: { applicant: "次日上午入住 3-214。", father: "欠费由匿名账户补齐。", career: "保留审核岗位，此后多次替主管处理异常件。", evidence: "本次差异从日报消失，只存在冷备份。" } },
+      { id: "export", title: "导出审计记录后关机", detail: "申请保持通过，同时留下自己的修改证据。", outcome: { applicant: "成功入住，资格未被撤销。", father: "林素云自行补缴 800 元。", career: "两个月后主动离职。", evidence: "审计导出件寄往监察部门，寄件人空白。" } },
+    ],
+  },
+};
+
 export default function Home() {
   const previewParams = new URLSearchParams(window.location.search);
   const requestedType = (
@@ -575,6 +648,7 @@ export default function Home() {
   const [caseEvidence, setCaseEvidence] = useState<string[]>([]);
   const [caseDecision, setCaseDecision] = useState("");
   const [caseBranchStep, setCaseBranchStep] = useState(0);
+  const [caseFollowupDecision, setCaseFollowupDecision] = useState("");
   const [caseFocus, setCaseFocus] = useState("");
   const [phoneStep, setPhoneStep] = useState<"idle" | "mailbox" | "selected" | "playing">("idle");
   const [voicemailHeard, setVoicemailHeard] = useState(false);
@@ -820,8 +894,23 @@ export default function Home() {
         return;
       }
       if (crtState !== "ready") return;
-      if (key === "enter" && caseDecision) {
-        setCaseBranchStep((step) => Math.min(4, step + 1));
+      if (caseDecision) {
+        if (caseBranchStep < 4 && key === "enter") {
+          if (caseBranchStep === 3) setCrtSelection(0);
+          setCaseBranchStep((step) => step + 1);
+          return;
+        }
+        if (caseBranchStep === 4 && caseFollowup) {
+          const choices = caseFollowup.choices;
+          if (key === "w" || key === "a")
+            setCrtSelection((value) => (value - 1 + choices.length) % choices.length);
+          if (key === "s" || key === "d")
+            setCrtSelection((value) => (value + 1) % choices.length);
+          if (key === "enter") {
+            setCaseFollowupDecision(choices[crtSelection % choices.length].id);
+            setCaseBranchStep(5);
+          }
+        }
         return;
       }
       if (caseEvidence.length === 4 && !caseDecision) {
@@ -937,6 +1026,10 @@ export default function Home() {
   const recall = (key: string) =>
     setRecalled((items) => (items.includes(key) ? items : [...items, key]));
   const caseBranch = caseDecision ? caseBranches[caseDecision] : null;
+  const caseFollowup = caseDecision ? caseFollowups[caseDecision] : null;
+  const caseOutcome = caseFollowupDecision
+    ? caseFollowup?.choices.find((choice) => choice.id === caseFollowupDecision)?.outcome
+    : null;
   return (
     <main
       className={`shell stage-${stage} anomaly-${anomalyKind}`}
@@ -1623,7 +1716,11 @@ export default function Home() {
                                   className={
                                     crtSelection % 5 === decisionIndex ? "keyboard-focus" : ""
                                   }
-                                  onClick={() => setCaseDecision(key)}
+                                  onClick={() => {
+                                    setCaseDecision(key);
+                                    setCaseFollowupDecision("");
+                                    setCaseBranchStep(0);
+                                  }}
                                 >
                                   <b>{item.title}</b>
                                   <span>{item.consequence}</span>
@@ -1658,20 +1755,52 @@ export default function Home() {
                                 <div className="branch-flag">
                                   {caseBranch.records[caseBranchStep - 1].flag}
                                 </div>
-                                <button onClick={() => setCaseBranchStep((step) => step + 1)}>
+                                <button onClick={() => {
+                                  if (caseBranchStep === 3) setCrtSelection(0);
+                                  setCaseBranchStep((step) => step + 1);
+                                }}>
                                   {caseBranchStep === 3
                                     ? "查看复核附件（Enter）"
                                     : "下一份记录（Enter）"}
                                 </button>
                               </div>
-                            ) : caseBranch ? (
-                              <div className="motive-verdict">
-                                <span>内部复核附件／未归档</span>
+                            ) : caseBranchStep === 4 && caseFollowup ? (
+                              <div className="followup-decision">
+                                <div className="branch-route">
+                                  <span>{caseFollowup.source}</span>
+                                  <b>{caseFollowup.time}</b>
+                                </div>
+                                <p className="followup-discovery">{caseFollowup.discovery}</p>
+                                <h2>{caseFollowup.prompt}</h2>
+                                <div className="followup-list">
+                                  {caseFollowup.choices.map((choice, choiceIndex) => (
+                                    <button
+                                      key={choice.id}
+                                      className={crtSelection % caseFollowup.choices.length === choiceIndex ? "keyboard-focus" : ""}
+                                      onClick={() => {
+                                        setCaseFollowupDecision(choice.id);
+                                        setCaseBranchStep(5);
+                                      }}
+                                    >
+                                      <b>{choice.title}</b>
+                                      <span>{choice.detail}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : caseBranch && caseOutcome ? (
+                              <div className="case-outcome">
+                                <span>办件关联记录／封存前预览</span>
                                 <h2>{caseBranch.route}</h2>
-                                <p>{caseBranch.motive}</p>
-                                <div>附件生成时间：今日 17:42　操作账户：A-071</div>
+                                <div className="outcome-grid">
+                                  <div><b>周静及子女</b><p>{caseOutcome.applicant}</p></div>
+                                  <div><b>林国安</b><p>{caseOutcome.father}</p></div>
+                                  <div><b>林素云</b><p>{caseOutcome.career}</p></div>
+                                  <div><b>证据状态</b><p>{caseOutcome.evidence}</p></div>
+                                </div>
+                                <blockquote>{caseBranch.motive}</blockquote>
                                 <button className="action locked">
-                                  <LockKeyhole /> 样本 XVI-ISTJ · 第一阶段完成
+                                  <LockKeyhole /> 样本 XVI-ISTJ · 本次记录封存
                                 </button>
                               </div>
                             ) : null}
