@@ -1442,12 +1442,17 @@ html .photo-space .awakened .eye.right {
 .hotspot:after {
   content: "";
   position: absolute;
-  inset: 42%;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translate(-50%, -50%);
   border: 1px solid #d5dfbb66;
   border-radius: 50%;
-  box-shadow: 0 0 14px #c8d9a755;
-  opacity: 0.22;
-  transition: 0.25s;
+  background: #d5dfbb12;
+  box-shadow: 0 0 7px #c8d9a744;
+  opacity: 0.3;
+  transition: width 0.2s, height 0.2s, opacity 0.2s, box-shadow 0.2s;
 }
 .hotspot span {
   position: absolute;
@@ -1464,8 +1469,10 @@ html .photo-space .awakened .eye.right {
 }
 .hotspot:hover:after,
 .hotspot:focus-visible:after {
-  inset: 35%;
-  opacity: 0.9;
+  width: 11px;
+  height: 11px;
+  opacity: 0.8;
+  box-shadow: 0 0 10px #c8d9a766;
 }
 .hotspot:hover span,
 .hotspot:focus-visible span {

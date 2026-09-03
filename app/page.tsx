@@ -1430,7 +1430,13 @@ export default function Home() {
           <div className="scene-vignette" />
           <div className="scene-clock">2015.03.19　{caseRoom === "lin" ? "17:42" : caseRoom === "corridor" ? "17:50" : "18:04"}</div>
           <div className="scene-hint">
-            {caseRoom === "lin" ? (officeDoorUnlocked ? "身后的门刚刚自己开了。" : "查看桌面。需要处理的文件还在等你。") : caseRoom === "corridor" ? "右侧有一扇门没有关严。" : "陈国平不在。桌上的机器还没有断电。"}
+            {caseRoom === "lin"
+              ? officeDoorUnlocked
+                ? "走廊传来一声关门响。陈国平似乎出去了——现在是检查终端 07 的机会。"
+                : "查看桌面。需要处理的文件还在等你。"
+              : caseRoom === "corridor"
+                ? "异常操作来自终端 07。陈国平办公室的门没有关严。"
+                : "陈国平不在。终端 07、传真机和抽屉都留在原处。"}
           </div>
           <button
             className="hotspot monitor"
@@ -1876,8 +1882,10 @@ export default function Home() {
                                   <span>{caseFollowup.source}</span>
                                   <b>{caseFollowup.time}</b>
                                 </div>
-                                <p className="followup-discovery">共享目录最后登录位置：陈国平办公室／终端 07。</p>
-                                <h2>门锁已经解除。离开终端，沿走廊查找终端 07。</h2>
+                                <p className="followup-discovery">
+                                  刚才记录中的关键操作来自陈国平账户。共享目录显示：最后写入位置为陈国平办公室／终端 07。
+                                </p>
+                                <h2>走廊传来关门声。他似乎刚刚离开。现在可以检查终端 07。</h2>
                                 <button onClick={() => setCaseFocus("")}>返回办公室（Enter）</button>
                               </div>
                             ) : caseBranch && caseOutcome ? (
