@@ -419,6 +419,135 @@ const caseDecisions: Record<string, { title: string; record: string; consequence
     consequence: "系统风险：低｜责任已转移，但处理期限不会重新计算。",
   },
 };
+const caseBranches: Record<
+  string,
+  {
+    route: string;
+    motive: string;
+    records: { date: string; source: string; body: string; flag: string }[];
+  }
+> = {
+  reject: {
+    route: "秩序服从线",
+    motive: "你没有伤害任何人的主观意图。你只是把规则置于可以预见的伤害之前。",
+    records: [
+      {
+        date: "04/18 09:12",
+        source: "安置名额变更日志",
+        body: "HS-0416-273 退回后，原预留床位自动分配给下一顺位申请人。",
+        flag: "流程状态：正常",
+      },
+      {
+        date: "04/26 21:40",
+        source: "辖区协查通报",
+        body: "周静及两名未成年家庭成员离开登记住址，暂未取得有效联系。",
+        flag: "该通报未进入审核员待办",
+      },
+      {
+        date: "06/02 14:05",
+        source: "季度质量复核",
+        body: "经复核，审核员林素云严格执行第12条，未发现流程责任。",
+        flag: "复核结论：合格",
+      },
+    ],
+  },
+  transfer: {
+    route: "责任转移线",
+    motive: "你没有作出伤害性的决定，却确保最终决定不会署上自己的名字。",
+    records: [
+      {
+        date: "04/17 17:44",
+        source: "流转队列日志",
+        body: "文件被转交至同组复核队列，系统未重新计算剩余处理时间。",
+        flag: "经办人字段已清空",
+      },
+      {
+        date: "04/17 18:02",
+        source: "复核员处理记录",
+        body: "下一名审核员依据材料逾期作出退回，处理耗时18秒。",
+        flag: "原经办人：不显示",
+      },
+      {
+        date: "06/02 14:05",
+        source: "责任链导出",
+        body: "报告将林素云标记为“仅流转、未决策”，因此不列入问责名单。",
+        flag: "系统知道你打开过全部材料",
+      },
+    ],
+  },
+  hold: {
+    route: "程序抗命线",
+    motive: "你愿意承担有限损失去延缓伤害，但仍把最终决定留给了更高权限。",
+    records: [
+      {
+        date: "04/17 17:43",
+        source: "临时挂起记录",
+        body: "审核员为申请保留24小时补件窗口，超出本人授权范围。",
+        flag: "绩效预警：黄色",
+      },
+      {
+        date: "04/17 19:06",
+        source: "主管操作日志",
+        body: "挂起被主管撤销，申请恢复为待退回状态。",
+        flag: "撤销理由：避免先例",
+      },
+      {
+        date: "04/20 08:30",
+        source: "内部谈话通知",
+        body: "林素云被要求说明为何对该申请采用与其他逾期件不同的处理方式。",
+        flag: "附件包含医院来电时间",
+      },
+    ],
+  },
+  notify: {
+    route: "非正式救助线",
+    motive: "你试图帮助具体的人，同时让正式记录继续证明自己从未破坏规则。",
+    records: [
+      {
+        date: "04/17 17:51",
+        source: "外线拨号清单",
+        body: "终端旁座机拨出一通43秒电话，号码与申请表联系方式一致。",
+        flag: "通话内容：未登记",
+      },
+      {
+        date: "04/17 23:36",
+        source: "材料接收网关",
+        body: "申请人重新上传完整材料，但原申请已进入自动退回队列。",
+        flag: "系统拒绝建立新版本",
+      },
+      {
+        date: "04/20 08:30",
+        source: "合规调查附件",
+        body: "调查员要求林素云复述那通没有写入工作记录的电话。",
+        flag: "录音文件长度：00:43",
+      },
+    ],
+  },
+  alter: {
+    route: "档案篡改线",
+    motive: "你直接改变了事实，使眼前的人获救，也让制度第一次拥有了控制你的证据。",
+    records: [
+      {
+        date: "04/17 17:43",
+        source: "字段修改日志",
+        body: "收件时间由“04/17 00:03”改写为“04/16 23:59”。申请随即通过。",
+        flag: "修改者：A-071",
+      },
+      {
+        date: "04/18 09:12",
+        source: "安置执行回执",
+        body: "周静及两名家庭成员完成临时入住登记。",
+        flag: "执行状态：成功",
+      },
+      {
+        date: "11年后",
+        source: "只读审计镜像",
+        body: "原始时间戳仍保存在不可修改的夜间备份中。有人刚刚重新调取了它。",
+        flag: "观察者编号与你相同",
+      },
+    ],
+  },
+};
 
 export default function Home() {
   const previewParams = new URLSearchParams(window.location.search);
@@ -443,6 +572,7 @@ export default function Home() {
   const [recalled, setRecalled] = useState<string[]>([]);
   const [caseEvidence, setCaseEvidence] = useState<string[]>([]);
   const [caseDecision, setCaseDecision] = useState("");
+  const [caseBranchStep, setCaseBranchStep] = useState(0);
   const [caseFocus, setCaseFocus] = useState("");
   const [phoneStep, setPhoneStep] = useState<"idle" | "mailbox" | "selected" | "playing">("idle");
   const [pressedPhoneKey, setPressedPhoneKey] = useState("");
@@ -647,6 +777,21 @@ export default function Home() {
         return;
       }
       if (crtState !== "ready") return;
+      if (key === "enter" && caseDecision) {
+        setCaseBranchStep((step) => Math.min(4, step + 1));
+        return;
+      }
+      if (caseEvidence.length === 4 && !caseDecision) {
+        const decisions = Object.keys(caseDecisions);
+        if (key === "w" || key === "a")
+          setCrtSelection((value) => (value - 1 + decisions.length) % decisions.length);
+        if (key === "s" || key === "d") setCrtSelection((value) => (value + 1) % decisions.length);
+        if (key === "enter") {
+          setCaseDecision(decisions[crtSelection % decisions.length]);
+          setCaseBranchStep(0);
+        }
+        return;
+      }
       if (key === "w") setCrtSelection((value) => (value >= 2 ? value - 2 : value));
       if (key === "s") setCrtSelection((value) => (value <= 1 ? value + 2 : value));
       if (key === "a") setCrtSelection((value) => (value % 2 === 1 ? value - 1 : value));
@@ -747,6 +892,7 @@ export default function Home() {
   };
   const recall = (key: string) =>
     setRecalled((items) => (items.includes(key) ? items : [...items, key]));
+  const caseBranch = caseDecision ? caseBranches[caseDecision] : null;
   return (
     <main
       className={`shell stage-${stage} anomaly-${anomalyKind}`}
@@ -1366,8 +1512,14 @@ export default function Home() {
                             </div>
                             <h2>你实际会怎样处理？</h2>
                             <div className="decision-list">
-                              {Object.entries(caseDecisions).map(([key, item]) => (
-                                <button key={key} onClick={() => setCaseDecision(key)}>
+                              {Object.entries(caseDecisions).map(([key, item], decisionIndex) => (
+                                <button
+                                  key={key}
+                                  className={
+                                    crtSelection % 5 === decisionIndex ? "keyboard-focus" : ""
+                                  }
+                                  onClick={() => setCaseDecision(key)}
+                                >
                                   <b>{item.title}</b>
                                   <span>{item.consequence}</span>
                                 </button>
@@ -1376,16 +1528,48 @@ export default function Home() {
                           </div>
                         ) : (
                           <div className="decision-result">
-                            <span>处理意见已写入</span>
-                            <h2>{caseDecisions[caseDecision].title}</h2>
-                            <p>{caseDecisions[caseDecision].record}</p>
-                            <small>{caseDecisions[caseDecision].consequence}</small>
-                            <div className="future-record">
-                              该理由将在后续调查中作为你的正式陈述。
-                            </div>
-                            <button className="action locked">
-                              <LockKeyhole /> 等待下一份文件
-                            </button>
+                            {caseBranchStep === 0 ? (
+                              <>
+                                <span>处理意见已写入</span>
+                                <h2>{caseDecisions[caseDecision].title}</h2>
+                                <p>{caseDecisions[caseDecision].record}</p>
+                                <small>{caseDecisions[caseDecision].consequence}</small>
+                                <div className="future-record">
+                                  检测到与本次处理关联的后续记录。
+                                </div>
+                                <button onClick={() => setCaseBranchStep(1)}>
+                                  调取后续记录（Enter）
+                                </button>
+                              </>
+                            ) : caseBranchStep <= 3 && caseBranch ? (
+                              <div className="branch-record">
+                                <div className="branch-route">
+                                  <span>{caseBranch.route}</span>
+                                  <b>{caseBranchStep} / 3</b>
+                                </div>
+                                <h2>{caseBranch.records[caseBranchStep - 1].source}</h2>
+                                <small>{caseBranch.records[caseBranchStep - 1].date}</small>
+                                <p>{caseBranch.records[caseBranchStep - 1].body}</p>
+                                <div className="branch-flag">
+                                  {caseBranch.records[caseBranchStep - 1].flag}
+                                </div>
+                                <button onClick={() => setCaseBranchStep((step) => step + 1)}>
+                                  {caseBranchStep === 3
+                                    ? "生成动机判定（Enter）"
+                                    : "下一份记录（Enter）"}
+                                </button>
+                              </div>
+                            ) : caseBranch ? (
+                              <div className="motive-verdict">
+                                <span>MOTIVE RECONSTRUCTION</span>
+                                <h2>{caseBranch.route}</h2>
+                                <p>{caseBranch.motive}</p>
+                                <div>你选择的不是善恶，而是愿意让哪一种责任留在记录里。</div>
+                                <button className="action locked">
+                                  <LockKeyhole /> 样本 XVI-ISTJ · 第一阶段完成
+                                </button>
+                              </div>
+                            ) : null}
                           </div>
                         )}
                         <div className="legacy-statusbar">

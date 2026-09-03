@@ -1914,6 +1914,11 @@ html .photo-space .awakened .eye.right {
   outline-offset: -4px;
   box-shadow: inset 0 0 0 1px #0a246a;
 }
+.crt-ready .decision-list button.keyboard-focus {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 1px #0a246a;
+}
 .crt-ready .case-prompt,
 .crt-ready .decision-panel,
 .crt-ready .decision-result {
@@ -1948,6 +1953,103 @@ html .photo-space .awakened .eye.right {
   padding: 2px 4px;
   border: 1px solid;
   border-color: #808080 #fff #fff #808080;
+}
+.crt-ready .decision-result > button,
+.crt-ready .branch-record > button {
+  width: 100%;
+  margin-top: 8px;
+  border: 1px solid;
+  border-color: #fff #404040 #404040 #fff;
+  border-radius: 0;
+  background: #d4d0c8;
+  color: #000;
+  padding: 5px;
+  font:
+    8px SimSun,
+    "宋体",
+    sans-serif;
+  cursor: pointer;
+}
+.crt-ready .decision-result > button:active,
+.crt-ready .branch-record > button:active {
+  border-color: #404040 #fff #fff #404040;
+  padding: 6px 4px 4px 6px;
+}
+.branch-route {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #808080;
+  color: #000;
+  font:
+    8px SimSun,
+    "宋体",
+    sans-serif;
+}
+.branch-route span {
+  color: #800000;
+  font-weight: 700;
+}
+.branch-record h2,
+.motive-verdict h2 {
+  margin: 7px 0 3px;
+  color: #000;
+  font:
+    700 13px SimSun,
+    "宋体",
+    sans-serif;
+}
+.branch-record > small {
+  color: #555;
+  font:
+    7px "Courier New",
+    monospace;
+}
+.branch-record p,
+.motive-verdict p {
+  margin: 7px 0;
+  color: #000;
+  font:
+    9px/1.6 SimSun,
+    "宋体",
+    sans-serif;
+}
+.branch-flag {
+  padding: 5px;
+  border: 1px solid #808080;
+  background: #fff;
+  color: #800000;
+  font:
+    8px SimSun,
+    "宋体",
+    sans-serif;
+}
+.motive-verdict > span {
+  color: #800000;
+  font:
+    7px "Courier New",
+    monospace;
+}
+.motive-verdict > div {
+  margin: 7px 0;
+  padding: 6px;
+  border-left: 3px solid #0a246a;
+  background: #fff;
+  color: #000;
+  font:
+    8px/1.5 SimSun,
+    "宋体",
+    sans-serif;
+}
+.crt-ready .motive-verdict .action.locked {
+  min-height: 30px;
+  margin-top: 7px;
+  border: 1px solid;
+  border-color: #fff #404040 #404040 #fff;
+  background: #d4d0c8;
+  color: #555;
+  box-shadow: none;
+  font-size: 8px;
 }
 @keyframes crt-beam-open {
   0% {
