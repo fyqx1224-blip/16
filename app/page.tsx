@@ -640,20 +640,34 @@ export default function Home() {
       window.setTimeout(() => setCrtState("ready"), 2200);
     });
   };
-  const useCrtKeyboard = (key: "tab" | "enter" | "escape") => {
+  const useCrtKeyboard = (key: "w" | "a" | "s" | "d" | "enter" | "escape") => {
     pressCrtKey(key, () => {
       if (key === "escape") {
         setCaseFocus("");
         return;
       }
       if (crtState !== "ready") return;
-      if (key === "tab") setCrtSelection((value) => (value + 1) % 4);
+      if (key === "w") setCrtSelection((value) => (value >= 2 ? value - 2 : value));
+      if (key === "s") setCrtSelection((value) => (value <= 1 ? value + 2 : value));
+      if (key === "a") setCrtSelection((value) => (value % 2 === 1 ? value - 1 : value));
+      if (key === "d") setCrtSelection((value) => (value % 2 === 0 ? value + 1 : value));
       if (key === "enter") {
         const evidence = ["family", "income", "residence", "time"][crtSelection];
         setCaseEvidence((items) => (items.includes(evidence) ? items : [...items, evidence]));
       }
     });
   };
+  useEffect(() => {
+    if (stage !== "case" || caseFocus !== "monitor") return;
+    const handleKey = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      if (!["w", "a", "s", "d", "enter", "escape"].includes(key)) return;
+      event.preventDefault();
+      useCrtKeyboard(key as "w" | "a" | "s" | "d" | "enter" | "escape");
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  });
   const scores = useMemo(() => {
     const s = {} as Record<FunctionKey, number>;
     (["Se", "Si", "Ne", "Ni", "Te", "Ti", "Fe", "Fi"] as FunctionKey[]).forEach((k) => (s[k] = 0));
@@ -1242,6 +1256,20 @@ export default function Home() {
                     )}
                     {crtState === "ready" && (
                       <div className="case-screen">
+                        <div className="legacy-titlebar">
+                          <span>市政安置资格审核系统 3.12</span>
+                          <i>—　□　×</i>
+                        </div>
+                        <div className="legacy-menubar">
+                          文件(F)　编辑(E)　查询(Q)　业务处理(B)　窗口(W)　帮助(H)
+                        </div>
+                        <div className="legacy-toolbar">
+                          <button>新建</button>
+                          <button>查询</button>
+                          <button>打印</button>
+                          <span />
+                          <em>W/A/S/D 移动　Enter 确认　Esc 退出</em>
+                        </div>
                         <div className="case-bar">
                           <span>安置资格审核系统　/　终端 04</span>
                           <b>17:42:16</b>
@@ -1360,6 +1388,11 @@ export default function Home() {
                             </button>
                           </div>
                         )}
+                        <div className="legacy-statusbar">
+                          <span>就绪</span>
+                          <span>内网节点：DA-04</span>
+                          <span>操作员：A-071</span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1367,21 +1400,6 @@ export default function Home() {
                     className={`crt-physical-key crt-power-key ${pressedCrtKey === "power" ? "pressed" : ""}`}
                     aria-label={crtState === "off" ? "开启显示器" : "显示器已开启"}
                     onClick={powerCrt}
-                  />
-                  <button
-                    className={`crt-physical-key crt-escape-key ${pressedCrtKey === "escape" ? "pressed" : ""}`}
-                    aria-label="按下键盘 Esc 键返回"
-                    onClick={() => useCrtKeyboard("escape")}
-                  />
-                  <button
-                    className={`crt-physical-key crt-tab-key ${pressedCrtKey === "tab" ? "pressed" : ""}`}
-                    aria-label="按下键盘 Tab 键切换材料"
-                    onClick={() => useCrtKeyboard("tab")}
-                  />
-                  <button
-                    className={`crt-physical-key crt-enter-key ${pressedCrtKey === "enter" ? "pressed" : ""}`}
-                    aria-label="按下键盘 Enter 键核验材料"
-                    onClick={() => useCrtKeyboard("enter")}
                   />
                   {crtState === "off" && <div className="crt-power-hint">按下显示器电源键</div>}
                 </div>
