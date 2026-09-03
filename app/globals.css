@@ -1495,6 +1495,12 @@ html .photo-space .awakened .eye.right {
   width: 13%;
   height: 19%;
 }
+.hotspot.payment {
+  left: 34%;
+  top: 72%;
+  width: 8%;
+  height: 17%;
+}
 .scene-modal {
   position: absolute;
   inset: 0;
@@ -3245,6 +3251,23 @@ header {
 .badge-object figcaption {
   padding: 11px 13px;
   color: #747b6e;
+  font: 9px/1.6 monospace;
+}
+.payment-object {
+  width: min(92vw, 900px);
+  margin: auto;
+  border: 1px solid #4b4d44;
+  background: #11130f;
+  box-shadow: 0 32px 110px #000;
+}
+.payment-object img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.payment-object figcaption {
+  padding: 11px 13px;
+  color: #85897d;
   font: 9px/1.6 monospace;
 }
 .file-object {

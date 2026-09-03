@@ -765,7 +765,7 @@ export default function Home() {
       sound.current.master.gain.setTargetAtTime(0.48, sound.current.ctx.currentTime, 0.5);
   };
   const submitCrtPassword = () => {
-    if (crtPassword === "07158273") {
+    if (crtPassword === "20110319") {
       setCrtLoginError("");
       setCrtState("ready");
       return;
@@ -1295,6 +1295,13 @@ export default function Home() {
           >
             <span>工牌</span>
           </button>
+          <button
+            className="hotspot payment"
+            aria-label="查看住院缴费通知"
+            onClick={() => openCaseObject("payment")}
+          >
+            <span>压在台历下的纸</span>
+          </button>
           {caseFocus && (
             <div className="scene-modal" role="dialog" aria-modal="true">
               <button
@@ -1311,10 +1318,7 @@ export default function Home() {
                     alt="周静的临时安置资格申请文件"
                   />
                   <figcaption>
-                    <span>
-                      申请编号：HS-0416-273。夹页里压着一张 3 月 2 日的信息科通知：系统升级后，
-                      未修改的临时口令仍按“个人编号尾三位＋办公分机尾两位＋当前办件尾三位”生成。
-                    </span>
+                    <span>申请编号：HS-0416-273。纸张右上角盖着很浅的“退回待复核”。</span>
                     <button onClick={() => openCaseObject("monitor")}>到终端核验材料</button>
                   </figcaption>
                 </figure>
@@ -1395,7 +1399,7 @@ export default function Home() {
                           : phoneStep === "playing"
                             ? "声音来自听筒内部。"
                             : voicemailHeard
-                              ? "留言登记时间：16:58。机身标签上的 2058 被人用笔描过一次。"
+                              ? "留言登记时间：16:58。"
                               : "不要读取文字，听完它。"}
                     </i>
                   </div>
@@ -1408,6 +1412,19 @@ export default function Home() {
                     alt="林素云的市政档案中心竖版工牌"
                   />
                   <figcaption>林素云，工号 A-071。照片印在纸芯里，划痕从她的脸上穿过去。</figcaption>
+                </figure>
+              )}
+              {caseFocus === "payment" && (
+                <figure className="scene-object payment-object">
+                  <img
+                    src={asset("objects/lin-father-hospital-payment.png")}
+                    alt="林国安的住院缴费通知和林素云留下的便签"
+                  />
+                  <figcaption>
+                    <span>
+                      四年前的缴费通知，被折过很多次。欠费金额正好是 800 元。便签上的日期和今天相同，年份不同。
+                    </span>
+                  </figcaption>
                 </figure>
               )}
               {caseFocus === "monitor" && (
@@ -1459,7 +1476,7 @@ export default function Home() {
                               aria-label="输入终端密码"
                             />
                             <button type="submit">→</button>
-                            <small>密码提示：参见 3 月 2 日信息科通知</small>
+                            <small>密码提示：爸第一次住院（8位）</small>
                             {crtLoginError && <em>{crtLoginError}</em>}
                           </div>
                         </form>
