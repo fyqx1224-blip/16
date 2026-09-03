@@ -1311,7 +1311,10 @@ export default function Home() {
                     alt="周静的临时安置资格申请文件"
                   />
                   <figcaption>
-                    <span>申请编号：HS-0416-273。纸张右上角盖着很浅的“退回待复核”。</span>
+                    <span>
+                      申请编号：HS-0416-273。夹页里压着一张 3 月 2 日的信息科通知：系统升级后，
+                      未修改的临时口令仍按“个人编号尾三位＋办公分机尾两位＋当前办件尾三位”生成。
+                    </span>
                     <button onClick={() => openCaseObject("monitor")}>到终端核验材料</button>
                   </figcaption>
                 </figure>
@@ -1386,13 +1389,13 @@ export default function Home() {
                     </span>
                     <i>
                       {phoneStep === "idle"
-                        ? "先找到语音信箱。"
+                        ? "机身标签：档案审核组／分机 2058。"
                         : phoneStep === "mailbox"
                           ? "按下数字 1。"
                           : phoneStep === "playing"
                             ? "声音来自听筒内部。"
                             : voicemailHeard
-                              ? "留言登记时间：16:58。"
+                              ? "留言登记时间：16:58。机身标签上的 2058 被人用笔描过一次。"
                               : "不要读取文字，听完它。"}
                     </i>
                   </div>
@@ -1456,7 +1459,7 @@ export default function Home() {
                               aria-label="输入终端密码"
                             />
                             <button type="submit">→</button>
-                            <small>密码提示：工号后三位／留言分钟／申请编号后三位</small>
+                            <small>密码提示：参见 3 月 2 日信息科通知</small>
                             {crtLoginError && <em>{crtLoginError}</em>}
                           </div>
                         </form>
