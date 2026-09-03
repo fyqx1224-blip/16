@@ -765,7 +765,7 @@ export default function Home() {
       sound.current.master.gain.setTargetAtTime(0.48, sound.current.ctx.currentTime, 0.5);
   };
   const submitCrtPassword = () => {
-    if (crtPassword === "20110319") {
+    if (crtPassword === "201103195827") {
       setCrtLoginError("");
       setCrtState("ready");
       return;
@@ -1399,7 +1399,7 @@ export default function Home() {
                           : phoneStep === "playing"
                             ? "声音来自听筒内部。"
                             : voicemailHeard
-                              ? "留言登记时间：16:58。"
+                              ? "留言尾段：请仍报旧病案号，尾号 5827。"
                               : "不要读取文字，听完它。"}
                     </i>
                   </div>
@@ -1470,13 +1470,13 @@ export default function Home() {
                               autoFocus
                               value={crtPassword}
                               onChange={(event) => {
-                                setCrtPassword(event.target.value.replace(/\D/g, "").slice(0, 8));
+                                setCrtPassword(event.target.value.replace(/\D/g, "").slice(0, 12));
                                 setCrtLoginError("");
                               }}
                               aria-label="输入终端密码"
                             />
                             <button type="submit">→</button>
-                            <small>密码提示：爸第一次住院（8位）</small>
+                            <small>密码提示：爸第一次住院，旧号</small>
                             {crtLoginError && <em>{crtLoginError}</em>}
                           </div>
                         </form>
