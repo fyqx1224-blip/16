@@ -1524,6 +1524,120 @@ html .photo-space .awakened .eye.right {
   padding: 26px 0;
   margin: auto;
 }
+.crt-object {
+  position: relative;
+  width: min(100%, 1100px);
+  margin: auto;
+  overflow: hidden;
+  border: 1px solid #4c5045;
+  background: #12130f;
+  box-shadow: 0 35px 120px #000;
+}
+.crt-object > img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.crt-glass {
+  position: absolute;
+  left: 27.05%;
+  top: 16.6%;
+  width: 47.75%;
+  height: 48.65%;
+  overflow: auto;
+  border-radius: 2.2% 2.2% 3.4% 3.4% / 3.4% 3.4% 5% 5%;
+  background: #07110cf0;
+  color: #b8c6ac;
+  scrollbar-width: thin;
+  scrollbar-color: #59634f #09100b;
+  box-shadow:
+    inset 0 0 34px #000,
+    inset 0 0 80px #14211980;
+  animation: crt-refresh 7.8s steps(1) infinite;
+}
+.crt-glass::after {
+  content: "";
+  position: sticky;
+  z-index: 8;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin-top: -100%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, transparent 57%, #0008 100%),
+    repeating-linear-gradient(0deg, transparent 0 2px, #0003 3px);
+  mix-blend-mode: multiply;
+}
+.crt-glass .case-screen {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 8px;
+  transform: translateZ(0);
+}
+.crt-glass .case-bar {
+  padding: 7px 8px;
+  font-size: 7px;
+}
+.crt-glass .case-heading > div {
+  padding: 7px;
+}
+.crt-glass .case-file {
+  margin-top: 7px;
+  padding: 10px;
+}
+.crt-glass .case-file h1 {
+  margin: 9px 0 6px;
+  font-size: 16px;
+}
+.crt-glass .case-file > p {
+  margin: 4px 0;
+  font-size: 8px;
+}
+.crt-glass .evidence-grid {
+  gap: 5px;
+  margin-top: 9px;
+}
+.crt-glass .evidence-grid button {
+  min-height: 45px;
+  padding: 7px;
+}
+.crt-glass .evidence-grid span {
+  margin-bottom: 4px;
+  font-size: 7px;
+}
+.crt-glass .evidence-grid b {
+  font-size: 8px;
+}
+.crt-glass .case-prompt,
+.crt-glass .decision-panel,
+.crt-glass .decision-result {
+  margin-top: 7px;
+  padding: 8px;
+}
+@keyframes crt-refresh {
+  0%,
+  46%,
+  49%,
+  83%,
+  85%,
+  100% {
+    filter: brightness(1);
+  }
+  47% {
+    filter: brightness(0.87) contrast(1.08);
+    transform: translateX(0);
+  }
+  48% {
+    filter: brightness(1.08);
+    transform: translateX(0.4px);
+  }
+  84% {
+    filter: brightness(0.92);
+  }
+}
 .object-closeup {
   width: min(100%, 470px);
   border: 1px solid #51594a;
