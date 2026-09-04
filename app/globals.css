@@ -1392,6 +1392,13 @@ html .photo-space .awakened .eye.right {
   overflow: hidden;
   background: #080a08;
 }
+.scene-pan-layer {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(var(--scene-pan-x, 0), var(--scene-pan-y, 0), 0);
+  transform-origin: center;
+  will-change: transform;
+}
 .scene-image {
   position: absolute;
   inset: 0;
@@ -1542,6 +1549,11 @@ html .photo-space .awakened .eye.right {
 .room-backup > .hotspot.payment {
   display: none;
 }
+.flat-scene:not(.room-lin) .scene-pan-layer > .hotspot.monitor,
+.flat-scene:not(.room-lin) .scene-pan-layer > .hotspot.folder,
+.flat-scene:not(.room-lin) .scene-pan-layer > .hotspot.phone,
+.flat-scene:not(.room-lin) .scene-pan-layer > .hotspot.badge,
+.flat-scene:not(.room-lin) .scene-pan-layer > .hotspot.payment { display: none; }
 .room-backup .scene-image { object-position: center 54%; }
 .hotspot.exit-door {
   left: 34%;
@@ -2542,7 +2554,7 @@ html .photo-space .awakened .eye.right {
 }
 @media (max-aspect-ratio: 4/3) {
   .scene-image {
-    object-fit: contain;
+    object-fit: cover;
     object-position: 50% center;
     background: #050705;
   }
@@ -2623,14 +2635,24 @@ html .photo-space .awakened .eye.right {
   .room-supervisor .scene-image,
   .room-intake .scene-image,
   .room-backup .scene-image { object-position: 50% center; }
-  .flat-scene > .hotspot { display: none !important; }
+  .scene-pan-layer {
+    transform: translate3d(var(--scene-pan-x, 0), var(--scene-pan-y, 0), 0) scale(1.42);
+    touch-action: none;
+    cursor: grab;
+  }
+  .scene-pan-layer:active { cursor: grabbing; }
+  .scene-pan-layer > .hotspot { touch-action: none; }
+  .scene-pan-layer > .hotspot:after {
+    width: 13px;
+    height: 13px;
+    opacity: .62;
+    border-color: #d9e7b680;
+    background: radial-gradient(circle, #dbe9b58c 0 18%, #b9d17a2e 38%, transparent 70%);
+    box-shadow: 0 0 13px #cadd8b88, 0 0 28px #a7c46144;
+    animation: mobile-heat-pulse 2.6s ease-in-out infinite;
+  }
   .mobile-scene-actions {
-    position: absolute;
-    z-index: 5;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
+    display: none;
     gap: 7px;
     overflow-x: auto;
     padding: 9px max(10px, env(safe-area-inset-right)) calc(9px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
@@ -2751,6 +2773,10 @@ html .photo-space .awakened .eye.right {
   .crt-ready .outcome-grid p { font-size: 11px; }
   .legacy-toolbar em { display: none; }
   .phone-readout { font-size: 12px; }
+}
+@keyframes mobile-heat-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(.82); opacity: .35; }
+  50% { transform: translate(-50%, -50%) scale(1.12); opacity: .8; }
 }
 :root {
   --bg: #080a08;

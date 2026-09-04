@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import {
   ArrowLeft,
   ChevronRight,
@@ -732,6 +732,9 @@ export default function Home() {
   const [branchEvidenceSeen, setBranchEvidenceSeen] = useState<string[]>([]);
   const [caseFocus, setCaseFocus] = useState("");
   const [caseRoom, setCaseRoom] = useState<CaseRoom>("lin");
+  const [scenePan, setScenePan] = useState({ x: 0, y: 0 });
+  const sceneDrag = useRef({ active: false, moved: false, startX: 0, startY: 0, originX: 0, originY: 0 });
+  const suppressSceneClick = useRef(false);
   const [officeDoorUnlocked, setOfficeDoorUnlocked] = useState(false);
   const [phoneStep, setPhoneStep] = useState<"idle" | "mailbox" | "selected" | "playing">("idle");
   const [voicemailHeard, setVoicemailHeard] = useState(false);
@@ -895,6 +898,35 @@ export default function Home() {
     setCaseFocus(object);
     if (object === "phone") setPhoneStep("idle");
   };
+  const beginSceneDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!window.matchMedia("(max-width: 620px)").matches) return;
+    sceneDrag.current = { active: true, moved: false, startX: event.clientX, startY: event.clientY, originX: scenePan.x, originY: scenePan.y };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const moveSceneDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!sceneDrag.current.active) return;
+    const dx = event.clientX - sceneDrag.current.startX;
+    const dy = event.clientY - sceneDrag.current.startY;
+    if (Math.hypot(dx, dy) > 7) sceneDrag.current.moved = true;
+    const limitX = window.innerWidth * 0.23;
+    const limitY = window.innerHeight * 0.13;
+    setScenePan({
+      x: Math.max(-limitX, Math.min(limitX, sceneDrag.current.originX + dx)),
+      y: Math.max(-limitY, Math.min(limitY, sceneDrag.current.originY + dy)),
+    });
+  };
+  const endSceneDrag = () => {
+    if (!sceneDrag.current.active) return;
+    sceneDrag.current.active = false;
+    if (sceneDrag.current.moved) {
+      suppressSceneClick.current = true;
+      window.setTimeout(() => { suppressSceneClick.current = false; }, 120);
+    }
+  };
+  const runSceneAction = (action: () => void) => {
+    if (!suppressSceneClick.current) action();
+  };
+  useEffect(() => setScenePan({ x: 0, y: 0 }), [caseRoom]);
   const pressPhoneKey = (key: string, action: () => void) => {
     setPressedPhoneKey("");
     window.requestAnimationFrame(() => {
@@ -1504,70 +1536,67 @@ export default function Home() {
             preload="auto"
             onEnded={finishVoicemail}
           />
-          <img
-            className="scene-image"
-            src={asset(roomScenes[caseRoom])}
-            alt={caseRoom === "lin" ? "17:42 的市政档案办公室" : caseRoom === "corridor" ? "档案中心走廊" : branchSpace?.place || "档案中心内部空间"}
-          />
-          <div className="scene-vignette" />
-          <div className="scene-clock">2015.04.17　{caseRoom === "lin" ? "17:42" : caseRoom === "corridor" ? "17:50" : branchSpace?.time || "18:04"}</div>
-          <div className="scene-hint">
-            {caseRoom === "lin"
-              ? officeDoorUnlocked
-                ? branchSpace?.trigger
-                : "查看桌面。需要处理的文件还在等你。"
-              : caseRoom === "corridor"
-                ? `${branchSpace?.reason || "记录出现矛盾"} 前往${branchSpace?.place || "相关办公室"}。`
-                : roomEvidenceComplete
-                  ? `${branchSpace?.place || "相关房间"}。三处记录已经核对，处理入口已开放。`
-                  : `${branchSpace?.place || "相关房间"}。已核对 ${branchEvidenceSeen.length}／${roomEvidence.length} 处记录。`}
-          </div>
+          <div
+            className="scene-pan-layer"
+            style={{ "--scene-pan-x": `${scenePan.x}px`, "--scene-pan-y": `${scenePan.y}px` } as CSSProperties}
+            onPointerDown={beginSceneDrag}
+            onPointerMove={moveSceneDrag}
+            onPointerUp={endSceneDrag}
+            onPointerCancel={endSceneDrag}
+          >
+            <img
+              className="scene-image"
+              src={asset(roomScenes[caseRoom])}
+              alt={caseRoom === "lin" ? "17:42 的市政档案办公室" : caseRoom === "corridor" ? "档案中心走廊" : branchSpace?.place || "档案中心内部空间"}
+              draggable={false}
+            />
+            <div className="scene-vignette" />
           <button
             className="hotspot monitor"
             aria-label="查看审核终端"
-            onClick={() => openCaseObject("monitor")}
+            onClick={() => runSceneAction(() => openCaseObject("monitor"))}
           >
             <span>审核终端</span>
           </button>
           <button
             className="hotspot folder"
             aria-label="查看申请文件"
-            onClick={() => openCaseObject("folder")}
+            onClick={() => runSceneAction(() => openCaseObject("folder"))}
           >
             <span>申请文件</span>
           </button>
           <button
             className="hotspot phone"
             aria-label="查看座机"
-            onClick={() => openCaseObject("phone")}
+            onClick={() => runSceneAction(() => openCaseObject("phone"))}
           >
             <span>座机</span>
           </button>
           <button
             className="hotspot badge"
             aria-label="查看工牌"
-            onClick={() => openCaseObject("badge")}
+            onClick={() => runSceneAction(() => openCaseObject("badge"))}
           >
             <span>工牌</span>
           </button>
           <button
             className="hotspot payment"
             aria-label="查看住院缴费通知"
-            onClick={() => openCaseObject("payment")}
+            onClick={() => runSceneAction(() => openCaseObject("payment"))}
           >
             <span>压在台历下的纸</span>
           </button>
           {caseRoom === "lin" && officeDoorUnlocked && (
-            <button className="hotspot exit-door" onClick={() => setCaseRoom("corridor")}>
+            <button className="hotspot exit-door" onClick={() => runSceneAction(() => setCaseRoom("corridor"))}>
               <span>走廊</span>
             </button>
           )}
           {caseRoom === "corridor" && (
             <>
-              <button className="hotspot chen-door" onClick={() => setCaseRoom(branchSpace?.room || "chen")}>
+              <button className="hotspot chen-door" onClick={() => runSceneAction(() => setCaseRoom(branchSpace?.room || "chen"))}>
                 <span>{branchSpace?.place || "半开的办公室"}</span>
               </button>
-              <button className="hotspot corridor-back" onClick={() => setCaseRoom("lin")}>
+              <button className="hotspot corridor-back" onClick={() => runSceneAction(() => setCaseRoom("lin"))}>
                 <span>返回林素云工位</span>
               </button>
             </>
@@ -1575,48 +1604,33 @@ export default function Home() {
           {caseRoom !== "lin" && caseRoom !== "corridor" && (
             <>
               {roomEvidence.map((item, evidenceIndex) => (
-                <button key={item.id} className={`hotspot branch-object branch-object-${evidenceIndex + 1} ${branchEvidenceSeen.includes(item.id) ? "seen" : ""}`} onClick={() => openCaseObject(`roomEvidence:${item.id}`)}>
+                <button key={item.id} className={`hotspot branch-object branch-object-${evidenceIndex + 1} ${branchEvidenceSeen.includes(item.id) ? "seen" : ""}`} onClick={() => runSceneAction(() => openCaseObject(`roomEvidence:${item.id}`))}>
                   <span>{branchEvidenceSeen.includes(item.id) ? `已核对／${item.label}` : item.label}</span>
                 </button>
               ))}
-              <button className="hotspot chen-back" onClick={() => setCaseRoom("corridor")}>
+              <button className="hotspot chen-back" onClick={() => runSceneAction(() => setCaseRoom("corridor"))}>
                 <span>退回走廊</span>
               </button>
-              {roomEvidenceComplete && (
-                <button className="scene-investigation-action" onClick={() => { setCrtSelection(0); openCaseObject("branchDecision"); }}>
-                  三处记录无法同时成立　整理处理意见
-                </button>
-              )}
             </>
           )}
-          <nav className="mobile-scene-actions" aria-label="当前场景可调查项目">
-            {caseRoom === "lin" && (
-              <>
-                <button onClick={() => openCaseObject("monitor")}>审核终端</button>
-                <button onClick={() => openCaseObject("folder")}>申请文件</button>
-                <button onClick={() => openCaseObject("phone")}>座机留言</button>
-                <button onClick={() => openCaseObject("badge")}>工牌</button>
-                <button onClick={() => openCaseObject("payment")}>台历下的纸</button>
-                {officeDoorUnlocked && <button onClick={() => setCaseRoom("corridor")}>进入走廊</button>}
-              </>
-            )}
-            {caseRoom === "corridor" && (
-              <>
-                <button onClick={() => setCaseRoom(branchSpace?.room || "chen")}>前往{branchSpace?.place || "相关办公室"}</button>
-                <button onClick={() => setCaseRoom("lin")}>返回工位</button>
-              </>
-            )}
-            {caseRoom !== "lin" && caseRoom !== "corridor" && (
-              <>
-                {roomEvidence.map((item) => (
-                  <button key={item.id} className={branchEvidenceSeen.includes(item.id) ? "seen" : ""} onClick={() => openCaseObject(`roomEvidence:${item.id}`)}>
-                    {branchEvidenceSeen.includes(item.id) ? "✓ " : ""}{item.label}
-                  </button>
-                ))}
-                <button onClick={() => setCaseRoom("corridor")}>返回走廊</button>
-              </>
-            )}
-          </nav>
+          </div>
+          <div className="scene-clock">2015.04.17　{caseRoom === "lin" ? "17:42" : caseRoom === "corridor" ? "17:50" : branchSpace?.time || "18:04"}</div>
+          <div className="scene-hint">
+            {caseRoom === "lin"
+              ? officeDoorUnlocked
+                ? branchSpace?.trigger
+                : "拖动视角，检查桌面。需要处理的文件还在等你。"
+              : caseRoom === "corridor"
+                ? `${branchSpace?.reason || "记录出现矛盾"} 前往${branchSpace?.place || "相关办公室"}。`
+                : roomEvidenceComplete
+                  ? `${branchSpace?.place || "相关房间"}。三处记录已经核对，处理入口已开放。`
+                  : `${branchSpace?.place || "相关房间"}。已核对 ${branchEvidenceSeen.length}／${roomEvidence.length} 处记录。`}
+          </div>
+          {roomEvidenceComplete && caseRoom !== "lin" && caseRoom !== "corridor" && (
+            <button className="scene-investigation-action" onClick={() => { setCrtSelection(0); openCaseObject("branchDecision"); }}>
+              三处记录无法同时成立　整理处理意见
+            </button>
+          )}
           {caseFocus && (
             <div className="scene-modal" role="dialog" aria-modal="true">
               <button
