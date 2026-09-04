@@ -1589,6 +1589,34 @@ export default function Home() {
               )}
             </>
           )}
+          <nav className="mobile-scene-actions" aria-label="当前场景可调查项目">
+            {caseRoom === "lin" && (
+              <>
+                <button onClick={() => openCaseObject("monitor")}>审核终端</button>
+                <button onClick={() => openCaseObject("folder")}>申请文件</button>
+                <button onClick={() => openCaseObject("phone")}>座机留言</button>
+                <button onClick={() => openCaseObject("badge")}>工牌</button>
+                <button onClick={() => openCaseObject("payment")}>台历下的纸</button>
+                {officeDoorUnlocked && <button onClick={() => setCaseRoom("corridor")}>进入走廊</button>}
+              </>
+            )}
+            {caseRoom === "corridor" && (
+              <>
+                <button onClick={() => setCaseRoom(branchSpace?.room || "chen")}>前往{branchSpace?.place || "相关办公室"}</button>
+                <button onClick={() => setCaseRoom("lin")}>返回工位</button>
+              </>
+            )}
+            {caseRoom !== "lin" && caseRoom !== "corridor" && (
+              <>
+                {roomEvidence.map((item) => (
+                  <button key={item.id} className={branchEvidenceSeen.includes(item.id) ? "seen" : ""} onClick={() => openCaseObject(`roomEvidence:${item.id}`)}>
+                    {branchEvidenceSeen.includes(item.id) ? "✓ " : ""}{item.label}
+                  </button>
+                ))}
+                <button onClick={() => setCaseRoom("corridor")}>返回走廊</button>
+              </>
+            )}
+          </nav>
           {caseFocus && (
             <div className="scene-modal" role="dialog" aria-modal="true">
               <button
