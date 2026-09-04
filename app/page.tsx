@@ -673,6 +673,35 @@ const roomScenes: Record<CaseRoom, string> = {
   backup: "scenes/cold-backup-room-1812.png",
 };
 
+type BranchEvidenceItem = { id: string; label: string; source: string; time: string; body: string; finding: string };
+const branchRoomEvidence: Record<string, BranchEvidenceItem[]> = {
+  reject: [
+    { id: "fax-roll", label: "接收记录", source: "传真机／当日接收清单", time: "04/14 09:26", body: "编号 HS-0416-273，接收 4 页，线路校验为 OK。纸卷上的页数与机器计数一致。", finding: "证明材料在补正期限内已经到达本单位，不是申请人迟交。" },
+    { id: "routing-slip", label: "分送签条", source: "传真分送夹／第二层", time: "04/14 09:31", body: "收件栏写着“陈国平代收”，登记号一栏空白；背面另有铅笔字：“先放，等床位表。”", finding: "材料被人取走，却没有进入办件库。遗漏发生在登记之前。" },
+    { id: "page-counter", label: "设备计数器", source: "传真机维护菜单", time: "17:51", body: "设备累计接收数比归档台账多 4 页。缺口只对应 04/14 这一批，缓存尚未被清除。", finding: "不是重复传真或系统残影；那四页实物确实经过这台机器。" },
+  ],
+  transfer: [
+    { id: "local-scan", label: "本地扫描件", source: "终端 07／临时扫描目录", time: "04/14 09:34", body: "文件“0414_周静_暂不入库.tif”共 4 页。最后访问时间是今天 17:39。", finding: "陈国平在接到公共复核之前，就打开过这宗申请的材料。" },
+    { id: "terminal-history", label: "检索历史", source: "复核终端／最近操作", time: "17:39—18:02", body: "17:39 精确检索 HS-0416-273；18:02 接件后停留 18 秒，附件查阅仍显示 0／4。", finding: "十八秒退件不是仓促判断。他提前知道附件内容，又刻意不从正式入口打开。" },
+    { id: "desk-note", label: "台历夹页", source: "陈国平办公桌／四月台历", time: "04/14", body: "当天页角写着：“274／赵主任／先空一床”。字迹旁盖有组长内线的回拨时间。", finding: "顺位 274 的递补不是系统偶然；有人在 273 被退前就等着这个床位。" },
+  ],
+  hold: [
+    { id: "remote-session", label: "远程会话", source: "组长终端／会话记录", time: "19:06", body: "主管账户从 02 号终端解除占件。门禁记录却显示赵主任 18:31 已经离开大楼。", finding: "解除挂起不是赵主任在办公室亲自完成，主管权限可能被借用。" },
+    { id: "admin-token", label: "备用权限匙", source: "右侧抽屉／交接盒", time: "未登记", body: "备用 USB 权限匙仍插在交接盒里，领用表今天没有签名。盒盖内侧粘着终端 02 的登录步骤。", finding: "任何知道流程的人都能以组长账户操作，而且不会留下自己的工号。" },
+    { id: "father-file", label: "担保续期件", source: "待签文件最上层", time: "04/18 待办", body: "林国安的住院床位担保续期件压在林素云的超时说明上，两份文件都等赵主任签字。", finding: "林素云若追查主管账户，父亲的续期也会由同一个人决定。" },
+  ],
+  notify: [
+    { id: "upload-pages", label: "失败附件", source: "接收终端／失败队列", time: "23:36", body: "账号 ZJ2047 上传 4 张照片。第三张拍到传真回执存根，日期清楚写着 04/14。", finding: "周静补传的不是新材料，而是在证明单位三天前已经收过。" },
+    { id: "gateway-log", label: "网关日志", source: "材料接收网关／E113", time: "23:36—23:41", body: "七次上传都在文件校验通过后被拒。原因始终是“原办件已关闭”，没有一次显示图片损坏。", finding: "申请人严格照电话操作；失败来自林素云先前的退件，而非材料本身。" },
+    { id: "call-capture", label: "外呼截录", source: "合规录音缓存", time: "17:51", body: "拨号清单记录通话 43 秒，合规录音只有 39 秒。波形中间缺口恰好 4 秒，不在开头或结尾。", finding: "系统没有漏录接通音；有人删掉了通话中间的一句话。" },
+  ],
+  alter: [
+    { id: "field-diff", label: "字段差异单", source: "校验打印机／异常页", time: "17:43", body: "receipt_time 从 04/17 00:03:11 改为 04/16 23:59:00，相差 251 秒。操作账户为 A-071。", finding: "林素云确实改写了时间；这一笔无法解释成系统误差。" },
+    { id: "backup-index", label: "旧镜像索引", source: "04/14 夜间备份／校验目录", time: "04/14 23:00", body: "镜像中已存在同案传真摘要，校验码与今晚四页附件一致，但正式办件库没有对应登记。", finding: "在林素云改时间之前，系统已经保存了材料按时到达的证明。" },
+    { id: "audit-job", label: "提前的审计任务", source: "备份机／任务计划", time: "18:12", body: "主管账户把原定 02:00 的差异镜像提前到 18:12，任务创建于林素云修改后的 29 秒。", finding: "有人看见她改写，并立即封存证据；这更像等她动手，而不是例行审计。" },
+  ],
+};
+
 export default function Home() {
   const previewParams = new URLSearchParams(window.location.search);
   const requestedType = (
@@ -700,6 +729,7 @@ export default function Home() {
   const [caseDecision, setCaseDecision] = useState("");
   const [caseBranchStep, setCaseBranchStep] = useState(0);
   const [caseFollowupDecision, setCaseFollowupDecision] = useState("");
+  const [branchEvidenceSeen, setBranchEvidenceSeen] = useState<string[]>([]);
   const [caseFocus, setCaseFocus] = useState("");
   const [caseRoom, setCaseRoom] = useState<CaseRoom>("lin");
   const [officeDoorUnlocked, setOfficeDoorUnlocked] = useState(false);
@@ -991,7 +1021,7 @@ export default function Home() {
           return;
         }
         if (caseBranchStep === 4 && caseFollowup) {
-          if (caseFocus === "chenEvidence") {
+          if (caseFocus === "branchDecision") {
             const choices = caseFollowup.choices;
             if (key === "w" || key === "a")
               setCrtSelection((value) => (value - 1 + choices.length) % choices.length);
@@ -1014,6 +1044,7 @@ export default function Home() {
         if (key === "s" || key === "d") setCrtSelection((value) => (value + 1) % decisions.length);
         if (key === "enter") {
           setCaseDecision(decisions[crtSelection % decisions.length]);
+          setBranchEvidenceSeen([]);
           setCaseBranchStep(0);
         }
         return;
@@ -1029,7 +1060,7 @@ export default function Home() {
     });
   };
   useEffect(() => {
-    if (stage !== "case" || !["monitor", "chenEvidence"].includes(caseFocus)) return;
+    if (stage !== "case" || !["monitor", "branchDecision"].includes(caseFocus)) return;
     const handleKey = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement) return;
       const key = event.key.toLowerCase();
@@ -1122,6 +1153,11 @@ export default function Home() {
   const caseBranch = caseDecision ? caseBranches[caseDecision] : null;
   const branchSpace = caseDecision ? branchSpaces[caseDecision] : null;
   const caseFollowup = caseDecision ? caseFollowups[caseDecision] : null;
+  const roomEvidence = caseDecision ? branchRoomEvidence[caseDecision] || [] : [];
+  const activeRoomEvidence = caseFocus.startsWith("roomEvidence:")
+    ? roomEvidence.find((item) => item.id === caseFocus.slice("roomEvidence:".length))
+    : null;
+  const roomEvidenceComplete = roomEvidence.length > 0 && roomEvidence.every((item) => branchEvidenceSeen.includes(item.id));
   const caseOutcome = caseFollowupDecision
     ? caseFollowup?.choices.find((choice) => choice.id === caseFollowupDecision)?.outcome
     : null;
@@ -1370,7 +1406,7 @@ export default function Home() {
               <img className="before" src={memoryPortrait} alt="事件发生前的林素云" />
               <div className="memory-scan" />
               <span>
-                {memoryRecovered ? "2015.03.19 / 市政档案中心" : "SUBJECT XVI-ISTJ / 收押影像"}
+                {memoryRecovered ? "2015.04.17 / 市政档案中心" : "SUBJECT XVI-ISTJ / 收押影像"}
               </span>
             </div>
             {!memoryRecovered ? (
@@ -1474,7 +1510,7 @@ export default function Home() {
             alt={caseRoom === "lin" ? "17:42 的市政档案办公室" : caseRoom === "corridor" ? "档案中心走廊" : branchSpace?.place || "档案中心内部空间"}
           />
           <div className="scene-vignette" />
-          <div className="scene-clock">2015.03.19　{caseRoom === "lin" ? "17:42" : caseRoom === "corridor" ? "17:50" : branchSpace?.time || "18:04"}</div>
+          <div className="scene-clock">2015.04.17　{caseRoom === "lin" ? "17:42" : caseRoom === "corridor" ? "17:50" : branchSpace?.time || "18:04"}</div>
           <div className="scene-hint">
             {caseRoom === "lin"
               ? officeDoorUnlocked
@@ -1482,7 +1518,9 @@ export default function Home() {
                 : "查看桌面。需要处理的文件还在等你。"
               : caseRoom === "corridor"
                 ? `${branchSpace?.reason || "记录出现矛盾"} 前往${branchSpace?.place || "相关办公室"}。`
-                : `${branchSpace?.place || "相关房间"}。${caseFollowup?.source || "关键设备"}仍可检查。`}
+                : roomEvidenceComplete
+                  ? `${branchSpace?.place || "相关房间"}。三处记录已经核对，处理入口已开放。`
+                  : `${branchSpace?.place || "相关房间"}。已核对 ${branchEvidenceSeen.length}／${roomEvidence.length} 处记录。`}
           </div>
           <button
             className="hotspot monitor"
@@ -1536,12 +1574,19 @@ export default function Home() {
           )}
           {caseRoom !== "lin" && caseRoom !== "corridor" && (
             <>
-              <button className="hotspot chen-desk" onClick={() => openCaseObject("chenEvidence")}>
-                <span>检查陈国平的工位</span>
-              </button>
+              {roomEvidence.map((item, evidenceIndex) => (
+                <button key={item.id} className={`hotspot branch-object branch-object-${evidenceIndex + 1} ${branchEvidenceSeen.includes(item.id) ? "seen" : ""}`} onClick={() => openCaseObject(`roomEvidence:${item.id}`)}>
+                  <span>{branchEvidenceSeen.includes(item.id) ? `已核对／${item.label}` : item.label}</span>
+                </button>
+              ))}
               <button className="hotspot chen-back" onClick={() => setCaseRoom("corridor")}>
                 <span>退回走廊</span>
               </button>
+              {roomEvidenceComplete && (
+                <button className="scene-investigation-action" onClick={() => { setCrtSelection(0); openCaseObject("branchDecision"); }}>
+                  三处记录无法同时成立　整理处理意见
+                </button>
+              )}
             </>
           )}
           {caseFocus && (
@@ -1669,13 +1714,27 @@ export default function Home() {
                   </figcaption>
                 </figure>
               )}
-              {caseFocus === "chenEvidence" && caseFollowup && (
+              {activeRoomEvidence && (
+                <div className="scene-object room-evidence-panel">
+                  <div className="branch-route"><span>{activeRoomEvidence.source}</span><b>{activeRoomEvidence.time}</b></div>
+                  <h2>{activeRoomEvidence.label}</h2>
+                  <p>{activeRoomEvidence.body}</p>
+                  <div className="evidence-finding"><small>交叉核对</small><b>{activeRoomEvidence.finding}</b></div>
+                  <button onClick={() => { setBranchEvidenceSeen((items) => items.includes(activeRoomEvidence.id) ? items : [...items, activeRoomEvidence.id]); setCaseFocus(""); }}>
+                    记入调查笔记　{branchEvidenceSeen.length + (branchEvidenceSeen.includes(activeRoomEvidence.id) ? 0 : 1)}／{roomEvidence.length}
+                  </button>
+                </div>
+              )}
+              {caseFocus === "branchDecision" && caseFollowup && (
                 <div className="scene-object chen-evidence-panel">
                   <div className="branch-route">
                     <span>{caseFollowup.source}</span>
                     <b>{caseFollowup.time}</b>
                   </div>
                   <p className="followup-discovery">{caseFollowup.discovery}</p>
+                  <div className="investigation-summary">
+                    {roomEvidence.map((item) => <span key={item.id}>{item.finding}</span>)}
+                  </div>
                   <h2>{caseFollowup.prompt}</h2>
                   <div className="followup-list">
                     {caseFollowup.choices.map((choice, choiceIndex) => (
@@ -1874,6 +1933,7 @@ export default function Home() {
                                   onClick={() => {
                                     setCaseDecision(key);
                                     setCaseFollowupDecision("");
+                                    setBranchEvidenceSeen([]);
                                     setCaseBranchStep(0);
                                   }}
                                 >
