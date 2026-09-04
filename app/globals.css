@@ -2542,7 +2542,9 @@ html .photo-space .awakened .eye.right {
 }
 @media (max-aspect-ratio: 4/3) {
   .scene-image {
+    object-fit: contain;
     object-position: 50% center;
+    background: #050705;
   }
   .hotspot.monitor {
     left: 35%;
@@ -2614,13 +2616,13 @@ html .photo-space .awakened .eye.right {
     font-size: 10px;
     line-height: 1.55;
   }
-  .room-lin .scene-image { object-position: 48% center; }
-  .room-corridor .scene-image { object-position: 62% center; }
+  .room-lin .scene-image,
+  .room-corridor .scene-image,
   .room-chen .scene-image,
   .room-fax .scene-image,
   .room-supervisor .scene-image,
   .room-intake .scene-image,
-  .room-backup .scene-image { object-position: 55% center; }
+  .room-backup .scene-image { object-position: 50% center; }
   .flat-scene > .hotspot { display: none !important; }
   .mobile-scene-actions {
     position: absolute;
