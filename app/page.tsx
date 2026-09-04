@@ -733,6 +733,7 @@ export default function Home() {
   const [caseFocus, setCaseFocus] = useState("");
   const [caseRoom, setCaseRoom] = useState<CaseRoom>("lin");
   const [scenePan, setScenePan] = useState({ x: 0, y: 0 });
+  const [sceneAspect, setSceneAspect] = useState(16 / 9);
   const sceneDrag = useRef({ active: false, moved: false, startX: 0, startY: 0, originX: 0, originY: 0 });
   const suppressSceneClick = useRef(false);
   const [officeDoorUnlocked, setOfficeDoorUnlocked] = useState(false);
@@ -908,11 +909,12 @@ export default function Home() {
     const dx = event.clientX - sceneDrag.current.startX;
     const dy = event.clientY - sceneDrag.current.startY;
     if (Math.hypot(dx, dy) > 7) sceneDrag.current.moved = true;
-    const limitX = window.innerWidth * 0.23;
-    const limitY = window.innerHeight * 0.13;
+    const visibleHeight = window.innerHeight - 52;
+    const fullImageWidth = visibleHeight * sceneAspect;
+    const limitX = Math.max(0, (fullImageWidth - window.innerWidth) / 2);
     setScenePan({
       x: Math.max(-limitX, Math.min(limitX, sceneDrag.current.originX + dx)),
-      y: Math.max(-limitY, Math.min(limitY, sceneDrag.current.originY + dy)),
+      y: 0,
     });
   };
   const endSceneDrag = () => {
@@ -1538,7 +1540,7 @@ export default function Home() {
           />
           <div
             className="scene-pan-layer"
-            style={{ "--scene-pan-x": `${scenePan.x}px`, "--scene-pan-y": `${scenePan.y}px` } as CSSProperties}
+            style={{ "--scene-pan-x": `${scenePan.x}px`, "--scene-pan-y": `${scenePan.y}px`, "--scene-aspect": sceneAspect } as CSSProperties}
             onPointerDown={beginSceneDrag}
             onPointerMove={moveSceneDrag}
             onPointerUp={endSceneDrag}
@@ -1549,6 +1551,7 @@ export default function Home() {
               src={asset(roomScenes[caseRoom])}
               alt={caseRoom === "lin" ? "17:42 的市政档案办公室" : caseRoom === "corridor" ? "档案中心走廊" : branchSpace?.place || "档案中心内部空间"}
               draggable={false}
+              onLoad={(event) => setSceneAspect(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight)}
             />
             <div className="scene-vignette" />
           <button
