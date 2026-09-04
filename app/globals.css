@@ -2709,46 +2709,39 @@ html .photo-space .awakened .eye.right {
   .followup-list b { font-size: 13px; }
   .followup-list span { font-size: 11px; }
   .crt-object {
-    width: 100%;
-    min-height: calc(100dvh - 140px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-    overflow: visible;
-    border: 5px solid #2b2d28;
-    border-radius: 8px;
-    background: #171a16;
+    flex: 0 0 auto;
+    width: max(820px, 220vw);
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid #4c5045;
+    border-radius: 0;
+    background: #12130f;
     box-shadow: 0 18px 70px #000;
   }
-  .crt-object > img { display: none; }
+  .crt-object > img { display: block; }
   .crt-glass {
-    position: relative;
-    left: auto;
-    top: auto;
-    width: 100%;
-    height: calc(100dvh - 150px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-    border-radius: 3px;
+    position: absolute;
+    left: 27.05%;
+    top: 16.6%;
+    width: 47.75%;
+    height: 48.65%;
+    border-radius: 2.2% 2.2% 3.4% 3.4% / 3.4% 3.4% 5% 5%;
   }
   .crt-power-key {
     position: absolute;
-    left: auto;
-    right: 12px;
-    top: auto;
-    bottom: 12px;
-    width: 64px;
-    height: 36px;
-    border: 1px solid #596052;
-    background: #20241d;
-    color: #cbd3bf;
+    left: 69.15%;
+    right: auto;
+    top: 72.2%;
+    bottom: auto;
+    width: 3.5%;
+    height: 3.4%;
+    border: 0;
+    background: transparent;
   }
   .crt-power-key::after {
-    content: "POWER";
-    display: grid;
-    place-items: center;
-    inset: 0;
-    opacity: 1;
-    background: transparent;
-    box-shadow: none;
-    font: 9px monospace;
+    display: none;
   }
-  .crt-power-hint { right: 84px; top: auto; bottom: 17px; font-size: 10px; }
+  .crt-power-hint { right: 23.8%; top: 67.8%; bottom: auto; font-size: 9px; }
   .crt-glass .case-screen { padding: 6px; }
   .xp-login-card { width: calc(100% - 32px); max-width: 310px; padding: 14px; grid-template-columns: 52px 1fr; }
   .xp-user-icon { width: 48px; height: 48px; font-size: 25px; }

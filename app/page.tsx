@@ -736,6 +736,7 @@ export default function Home() {
   const [sceneAspect, setSceneAspect] = useState(16 / 9);
   const sceneDrag = useRef({ active: false, moved: false, startX: 0, startY: 0, originX: 0, originY: 0 });
   const suppressSceneClick = useRef(false);
+  const caseModalRef = useRef<HTMLDivElement>(null);
   const [officeDoorUnlocked, setOfficeDoorUnlocked] = useState(false);
   const [phoneStep, setPhoneStep] = useState<"idle" | "mailbox" | "selected" | "playing">("idle");
   const [voicemailHeard, setVoicemailHeard] = useState(false);
@@ -929,6 +930,16 @@ export default function Home() {
     if (!suppressSceneClick.current) action();
   };
   useEffect(() => setScenePan({ x: 0, y: 0 }), [caseRoom]);
+  useEffect(() => {
+    if (caseFocus !== "monitor" || !window.matchMedia("(max-width: 620px)").matches) return;
+    const frame = window.requestAnimationFrame(() => {
+      const modal = caseModalRef.current;
+      if (!modal) return;
+      modal.scrollLeft = Math.max(0, (modal.scrollWidth - modal.clientWidth) / 2);
+      modal.scrollTop = 0;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [caseFocus]);
   const pressPhoneKey = (key: string, action: () => void) => {
     setPressedPhoneKey("");
     window.requestAnimationFrame(() => {
@@ -1635,7 +1646,7 @@ export default function Home() {
             </button>
           )}
           {caseFocus && (
-            <div className="scene-modal" role="dialog" aria-modal="true">
+            <div ref={caseModalRef} className="scene-modal" role="dialog" aria-modal="true">
               <button
                 className="scene-close"
                 onClick={() => setCaseFocus("")}
