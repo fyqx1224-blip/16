@@ -579,8 +579,8 @@ const caseFollowups: Record<
   transfer: {
     time: "18:04",
     source: "复核岗临时文件",
-    discovery: "陈国平在 18 秒内退件，却在本地目录保存了一张 04/14 的传真扫描图。文件名为“不要入库”。",
-    prompt: "陈国平已经离开办公室。你仍能访问这台共享终端。",
+    discovery: "扫描件的创建时间、用时 18 秒的退件日志与台历上的“274”指向同一条链：材料被提前截留，陈国平在正式系统中制造了“未查看即退件”的记录，空出的床位将由 274 号递补。",
+    prompt: "这三件证据尚未进入正式档案。陈国平随时可能回来。你如何处理？",
     choices: [
       { id: "report", title: "连同日志上报监察", detail: "保留访问记录，以本人账户提交。", outcome: { applicant: "退件被撤销，名额暂时冻结。", father: "次日被要求重新审核床位担保。", career: "暂停经办权限 23 日，后恢复。", evidence: "扫描图、访问日志和传真缓存形成完整证据链。" } },
       { id: "return", title: "退回给陈国平说明", detail: "要求他次日自行纠正。", outcome: { applicant: "扫描图在凌晨被删除，退件生效。", father: "床位担保正常续期。", career: "责任链仍只记录复核岗。", evidence: "只剩一条无法证明内容的文件访问记录。" } },
@@ -673,7 +673,7 @@ const roomScenes: Record<CaseRoom, string> = {
   backup: "scenes/cold-backup-room-1812.png",
 };
 
-type BranchEvidenceItem = { id: string; label: string; source: string; time: string; body: string; finding: string };
+type BranchEvidenceItem = { id: string; label: string; source: string; time: string; body: string; finding: string; image?: string; imageAlt?: string };
 const branchRoomEvidence: Record<string, BranchEvidenceItem[]> = {
   reject: [
     { id: "fax-roll", label: "接收记录", source: "传真机／当日接收清单", time: "04/14 09:26", body: "编号 HS-0416-273，接收 4 页，线路校验为 OK。纸卷上的页数与机器计数一致。", finding: "证明材料在补正期限内已经到达本单位，不是申请人迟交。" },
@@ -681,9 +681,9 @@ const branchRoomEvidence: Record<string, BranchEvidenceItem[]> = {
     { id: "page-counter", label: "设备计数器", source: "传真机维护菜单", time: "17:51", body: "设备累计接收数比归档台账多 4 页。缺口只对应 04/14 这一批，缓存尚未被清除。", finding: "不是重复传真或系统残影；那四页实物确实经过这台机器。" },
   ],
   transfer: [
-    { id: "local-scan", label: "本地扫描件", source: "终端 07／临时扫描目录", time: "04/14 09:34", body: "文件“0414_周静_暂不入库.tif”共 4 页。最后访问时间是今天 17:39。", finding: "陈国平在接到公共复核之前，就打开过这宗申请的材料。" },
-    { id: "terminal-history", label: "检索历史", source: "复核终端／最近操作", time: "用时 18s", body: "17:39 精确检索 HS-0416-273；18:02:07 正式接件，18:02:21 选择“超过补正期限”，18:02:25 提交退回。四份附件均未从办件页打开。", finding: "十八秒退件不是仓促判断。他提前知道附件内容，又刻意不从正式入口打开。" },
-    { id: "desk-note", label: "台历夹页", source: "陈国平办公桌／四月台历", time: "04/14", body: "当天页角写着：“274／赵主任／先空一床”。字迹旁盖有组长内线的回拨时间。", finding: "顺位 274 的递补不是系统偶然；有人在 273 被退前就等着这个床位。" },
+    { id: "local-scan", label: "本地扫描件", source: "终端 07／临时扫描目录", time: "04/14 09:34", image: "objects/chen-local-scan.png", imageAlt: "陈国平办公室旧式电脑中的临时扫描目录", body: "文件“0414_周静_暂不入库.tif”共 4 页。创建时间为 04/14 09:34，最后访问时间是今天 17:39。", finding: "陈国平在正式接到复核件之前，已经持有并查看过这宗申请的全部材料。" },
+    { id: "terminal-history", label: "办件审计历史", source: "复核终端／最近操作", time: "用时 18s", image: "objects/chen-terminal-history.png", imageAlt: "陈国平复核终端上的办件审计历史", body: "17:39 精确检索 HS-0416-273；18:02:07 正式接件，18:02:21 选择“超过补正期限”，18:02:25 提交退回。办件页中的 4 份附件，查阅数为 0。", finding: "用时 18 秒不是因为仓促。他已从本地副本看过材料，却刻意避开会留下痕迹的正式附件入口。" },
+    { id: "desk-note", label: "台历夹页", source: "陈国平办公桌／四月台历", time: "04/14", image: "objects/chen-calendar-note.png", imageAlt: "陈国平办公桌四月台历与夹在其中的手写便条", body: "04/14 的台历夹着流转单，便条写着：“274／赵主任／先空一床”。电话符号旁记录了组长内线的回拨。", finding: "273 号退件后，274 号会立刻递补。有人在材料被截留当天，就已经安排了床位去向。" },
   ],
   hold: [
     { id: "remote-session", label: "远程会话", source: "组长终端／会话记录", time: "19:06", body: "主管账户从 02 号终端解除占件。门禁记录却显示赵主任 18:31 已经离开大楼。", finding: "解除挂起不是赵主任在办公室亲自完成，主管权限可能被借用。" },
@@ -1771,9 +1771,14 @@ export default function Home() {
                 </figure>
               )}
               {activeRoomEvidence && (
-                <div className="scene-object room-evidence-panel">
+                <div className={`scene-object room-evidence-panel ${activeRoomEvidence.image ? "has-photo" : ""}`}>
                   <div className="branch-route"><span>{activeRoomEvidence.source}</span><b>{activeRoomEvidence.time}</b></div>
                   <h2>{activeRoomEvidence.label}</h2>
+                  {activeRoomEvidence.image && (
+                    <figure className="room-evidence-photo">
+                      <img src={asset(activeRoomEvidence.image)} alt={activeRoomEvidence.imageAlt || activeRoomEvidence.label} />
+                    </figure>
+                  )}
                   <p>{activeRoomEvidence.body}</p>
                   <div className="evidence-finding"><small>交叉核对</small><b>{activeRoomEvidence.finding}</b></div>
                   <button onClick={() => { setBranchEvidenceSeen((items) => items.includes(activeRoomEvidence.id) ? items : [...items, activeRoomEvidence.id]); setCaseFocus(""); }}>

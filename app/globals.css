@@ -2302,7 +2302,10 @@ html .photo-space .awakened .eye.right {
   box-shadow: 0 28px 100px #000;
   font-family: SimSun, "宋体", sans-serif;
 }
+.room-evidence-panel.has-photo { width: min(94vw, 920px); }
 .room-evidence-panel h2 { margin: 17px 0 8px; font-size: 18px; }
+.room-evidence-photo { margin: 0 0 12px; overflow: hidden; border: 1px solid #55584f; background: #151713; box-shadow: inset 0 0 22px #0008; }
+.room-evidence-photo img { display: block; width: 100%; height: auto; }
 .room-evidence-panel > p { margin: 0; padding: 12px; border: 1px solid #8b8b82; background: #f2f0e9; font-size: 13px; line-height: 1.75; }
 .evidence-finding { display: grid; gap: 5px; margin-top: 10px; padding: 10px 12px; border-left: 3px solid #800000; background: #e8e5dc; }
 .evidence-finding small { color: #6c150f; font-size: 10px; letter-spacing: .18em; }
@@ -2699,6 +2702,7 @@ html .photo-space .awakened .eye.right {
   .room-evidence-panel,
   .chen-evidence-panel { width: 100%; padding: 15px; }
   .room-evidence-panel h2 { font-size: 20px; }
+  .room-evidence-photo { margin-bottom: 10px; }
   .room-evidence-panel > p { font-size: 15px; line-height: 1.7; }
   .evidence-finding b { font-size: 14px; }
   .room-evidence-panel > button { min-height: 44px; font-size: 13px; }
