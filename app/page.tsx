@@ -578,12 +578,12 @@ const caseFollowups: Record<
   },
   transfer: {
     time: "18:04",
-    source: "复核岗临时文件",
-    discovery: "扫描件的创建时间、用时 18 秒的退件日志与台历上的“274”指向同一条链：材料被提前截留，陈国平在正式系统中制造了“未查看即退件”的记录，空出的床位将由 274 号递补。",
+    source: "复核岗异常记录",
+    discovery: "传真接收时间、用时18秒的退件日志与台历上的“274”指向同一条链：材料被提前截留，陈国平在正式系统中制造了“未查看即退件”的记录，空出的3-214将由274号递补。",
     prompt: "这三件证据尚未进入正式档案。陈国平随时可能回来。你如何处理？",
     choices: [
-      { id: "report", title: "连同日志上报监察", detail: "保留访问记录，以本人账户提交。", outcome: { applicant: "退件被撤销，名额暂时冻结。", father: "次日被要求重新审核床位担保。", career: "暂停经办权限 23 日，后恢复。", evidence: "扫描图、访问日志和传真缓存形成完整证据链。" } },
-      { id: "return", title: "退回给陈国平说明", detail: "要求他次日自行纠正。", outcome: { applicant: "扫描图在凌晨被删除，退件生效。", father: "床位担保正常续期。", career: "责任链仍只记录复核岗。", evidence: "只剩一条无法证明内容的文件访问记录。" } },
+      { id: "report", title: "连同日志上报监察", detail: "保留访问记录，以本人账户提交。", outcome: { applicant: "退件被撤销，名额暂时冻结。", father: "次日被要求重新审核床位担保。", career: "暂停经办权限 23 日，后恢复。", evidence: "传真原件、接收计数和审计日志形成完整证据链。" } },
+      { id: "return", title: "退回给陈国平说明", detail: "要求他次日自行纠正。", outcome: { applicant: "分送签条在凌晨被销毁，退件生效。", father: "床位担保正常续期。", career: "责任链仍只记录复核岗。", evidence: "只剩一条无法证明材料内容的访问记录。" } },
       { id: "anonymous", title: "匿名打印后离开", detail: "不使用系统上报渠道。", outcome: { applicant: "三个月后因匿名材料重新取得申请资格。", father: "未被卷入调查。", career: "林素云继续任职，未被列为证人。", evidence: "打印件缺少来源，足以启动调查，不足以直接定责。" } },
     ],
   },
@@ -639,7 +639,7 @@ const branchSpaces: Record<
     place: "陈国平办公室／终端 07",
     time: "18:04",
     trigger: "走廊传来一声关门响。陈国平似乎刚刚离开。",
-    reason: "陈国平在 18 秒内退件，附件查阅为 0；一旦复核责任倒查，林素云的转件理由也会被重新审查。",
+    reason: "陈国平用时 18 秒退件，附件查阅为 0；一旦复核责任倒查，我提交的“材料认定存疑”也会被重新审查。",
   },
   hold: {
     room: "supervisor",
@@ -664,9 +664,9 @@ const branchSpaces: Record<
   },
 };
 const roomScenes: Record<CaseRoom, string> = {
-  lin: "scenes/istj-office-1742.webp",
+  lin: "scenes/istj-office-notebook.webp",
   corridor: "scenes/archive-corridor-1750.png",
-  chen: "scenes/chen-office-1804.png",
+  chen: "scenes/chen-office-1804.webp",
   fax: "scenes/fax-room-1752.png",
   supervisor: "scenes/supervisor-office-1908.png",
   intake: "scenes/materials-intake-2338.png",
@@ -681,9 +681,9 @@ const branchRoomEvidence: Record<string, BranchEvidenceItem[]> = {
     { id: "page-counter", label: "设备计数器", source: "传真机维护菜单", time: "17:51", body: "设备累计接收数比归档台账多 4 页。缺口只对应 04/14 这一批，缓存尚未被清除。", finding: "不是重复传真或系统残影；那四页实物确实经过这台机器。" },
   ],
   transfer: [
-    { id: "local-scan", label: "本地扫描件", source: "终端 07／临时扫描目录", time: "04/14 09:34", image: "objects/chen-local-scan.png", imageAlt: "陈国平办公室旧式电脑中的临时扫描目录", body: "文件“0414_周静_暂不入库.tif”共 4 页。创建时间为 04/14 09:34，最后访问时间是今天 17:39。", finding: "陈国平在正式接到复核件之前，已经持有并查看过这宗申请的全部材料。" },
-    { id: "terminal-history", label: "办件审计历史", source: "复核终端／最近操作", time: "用时 18s", image: "objects/chen-terminal-history.png", imageAlt: "陈国平复核终端上的办件审计历史", body: "17:39 精确检索 HS-0416-273；18:02:07 正式接件，18:02:21 选择“超过补正期限”，18:02:25 提交退回。办件页中的 4 份附件，查阅数为 0。", finding: "用时 18 秒不是因为仓促。他已从本地副本看过材料，却刻意避开会留下痕迹的正式附件入口。" },
-    { id: "desk-note", label: "台历夹页", source: "陈国平办公桌／四月台历", time: "04/14", image: "objects/chen-calendar-note.png", imageAlt: "陈国平办公桌四月台历与夹在其中的手写便条", body: "04/14 的台历夹着流转单，便条写着：“274／赵主任／先空一床”。电话符号旁记录了组长内线的回拨。", finding: "273 号退件后，274 号会立刻递补。有人在材料被截留当天，就已经安排了床位去向。" },
+    { id: "local-scan", label: "四页传真材料", source: "传真机出纸托盘／未登记材料", time: "04/14 09:26", image: "objects/chen-fax-pages.webp", imageAlt: "陈国平办公桌旁传真机取出的四页传真原件", body: "四页传真纸的线路校验均为 OK，接收时间为 04/14 09:26。分送签条上写着“陈国平代收”，登记号一栏空白。", finding: "材料在补正期限内已经到达这间办公室，但没有进入正式登记流程。" },
+    { id: "terminal-history", label: "办件审计历史", source: "复核终端／最近操作", time: "用时 18s", image: "objects/chen-terminal-history-v2.webp", imageAlt: "陈国平复核终端上的办件审计历史", body: "17:39 精确检索 HS-0416-273；18:02:07 正式接件，18:02:21 选择“超过补正期限”，18:02:25 提交退回。办件页中的 4 份附件，查阅数为 0。", finding: "用时 18 秒不是因为仓促。他已经接触过传真原件，却避开会留下痕迹的正式附件入口。" },
+    { id: "desk-note", label: "台历夹页", source: "陈国平办公桌／四月台历", time: "04/14", image: "objects/chen-calendar-note.webp", imageAlt: "陈国平办公桌四月台历与夹在其中的手写便条", body: "04/14 的台历夹着流转单，便条写着：“274／3-214 暂缓登记／赵 09:31”。", finding: "273 号退件后，274 号会立即递补3-214。有人在周静补正期结束前，就已经预留了房间。" },
   ],
   hold: [
     { id: "remote-session", label: "远程会话", source: "组长终端／会话记录", time: "19:06", body: "主管账户从 02 号终端解除占件。门禁记录却显示赵主任 18:31 已经离开大楼。", finding: "解除挂起不是赵主任在办公室亲自完成，主管权限可能被借用。" },
@@ -1210,7 +1210,7 @@ export default function Home() {
   const roomEvidenceComplete = roomEvidence.length > 0 && roomEvidence.every((item) => branchEvidenceSeen.includes(item.id));
   const notebookReady = caseDecision === "transfer" && roomEvidenceComplete;
   const notebookFacts = [
-    { id: "arrival", code: "E-01", title: "材料先于正式接件出现", detail: "04/14 09:34，终端07已生成周静的四页扫描件。" },
+    { id: "arrival", code: "E-01", title: "传真按时到达但未登记", detail: "04/14 09:26，四页传真校验为OK，分送签条登记号为空。" },
     { id: "avoidance", code: "E-02", title: "退件规避正式查阅", detail: "04/17正式接件后用时18秒退回，附件查阅0/4。" },
     { id: "benefit", code: "E-03", title: "下一顺位提前对应房间", detail: "周静尚在补正期内，台历已记录274与3-214。" },
   ];
@@ -1647,14 +1647,14 @@ export default function Home() {
                 <span>{branchSpace?.place || "半开的办公室"}</span>
               </button>
               <button className="hotspot corridor-back" onClick={() => runSceneAction(() => setCaseRoom("lin"))}>
-                <span>返回林素云工位</span>
+                <span>返回我的工位</span>
               </button>
             </>
           )}
           {caseRoom !== "lin" && caseRoom !== "corridor" && (
             <>
               {roomEvidence.map((item, evidenceIndex) => (
-                <button key={item.id} className={`hotspot branch-object branch-object-${evidenceIndex + 1} ${branchEvidenceSeen.includes(item.id) ? "seen" : ""}`} onClick={() => runSceneAction(() => openCaseObject(`roomEvidence:${item.id}`))}>
+                <button key={item.id} className={`hotspot branch-object branch-object-${evidenceIndex + 1} branch-${item.id} ${branchEvidenceSeen.includes(item.id) ? "seen" : ""}`} onClick={() => runSceneAction(() => openCaseObject(`roomEvidence:${item.id}`))}>
                   <span>{branchEvidenceSeen.includes(item.id) ? `已核对／${item.label}` : item.label}</span>
                 </button>
               ))}
@@ -1676,7 +1676,7 @@ export default function Home() {
                 ? `${branchSpace?.reason || "记录出现矛盾"} 前往${branchSpace?.place || "相关办公室"}。`
                 : roomEvidenceComplete
                   ? caseDecision === "transfer"
-                    ? `${branchSpace?.place || "相关房间"}。三处记录已经核对；需要回到林素云工位整理证据。`
+                    ? `${branchSpace?.place || "相关房间"}。三处记录已经核对；我需要回到工位整理证据。`
                     : `${branchSpace?.place || "相关房间"}。三处记录已经核对，处理入口已开放。`
                   : `${branchSpace?.place || "相关房间"}。已核对 ${branchEvidenceSeen.length}／${roomEvidence.length} 处记录。`}
           </div>
@@ -1690,7 +1690,7 @@ export default function Home() {
                 openCaseObject("branchDecision");
               }
             }}>
-              {caseDecision === "transfer" ? "带着记录返回林素云工位" : "三处记录无法同时成立　整理处理意见"}
+              {caseDecision === "transfer" ? "带着记录返回我的工位" : "三处记录无法同时成立　整理处理意见"}
             </button>
           )}
           {caseFocus && (
@@ -1825,6 +1825,14 @@ export default function Home() {
                   {activeRoomEvidence.image && (
                     <figure className="room-evidence-photo">
                       <img src={asset(activeRoomEvidence.image)} alt={activeRoomEvidence.imageAlt || activeRoomEvidence.label} />
+                      {activeRoomEvidence.id === "terminal-history" && (
+                        <div className="audit-screen-overlay" aria-label="办件审计记录的准确文本">
+                          <header>办件审计历史　HS-0416-273</header>
+                          <div className="audit-row audit-head"><span>时间</span><span>操作</span><span>处理结果</span><span>耗时</span><span>附件</span></div>
+                          <div className="audit-row"><span>17:39:02</span><span>精确检索</span><span>本地记录</span><span>—</span><span>—</span></div>
+                          <div className="audit-row alert"><span>18:02:07</span><span>陈国平接件</span><span>超过补正期限</span><span>18s</span><span>0/4</span></div>
+                        </div>
+                      )}
                     </figure>
                   )}
                   <p>{activeRoomEvidence.body}</p>
@@ -1836,6 +1844,7 @@ export default function Home() {
               )}
               {caseFocus === "notebook" && notebookReady && (
                 <div className="scene-object investigation-notebook">
+                  <img className="notebook-photo" src={asset("objects/lin-investigation-notebook-v2.webp")} alt="我桌上翻开的调查笔记本" />
                   <div className="notebook-spine" />
                   <section className="notebook-page notebook-facts">
                     <header><small>市政档案中心／个人复核笔记</small><b>2015.04.17</b></header>
