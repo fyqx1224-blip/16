@@ -730,6 +730,9 @@ export default function Home() {
   const [caseBranchStep, setCaseBranchStep] = useState(0);
   const [caseFollowupDecision, setCaseFollowupDecision] = useState("");
   const [branchEvidenceSeen, setBranchEvidenceSeen] = useState<string[]>([]);
+  const [notebookEvidence, setNotebookEvidence] = useState<string[]>([]);
+  const [inferenceComplete, setInferenceComplete] = useState(false);
+  const [cognitivePulse, setCognitivePulse] = useState("");
   const [caseFocus, setCaseFocus] = useState("");
   const [caseRoom, setCaseRoom] = useState<CaseRoom>("lin");
   const [scenePan, setScenePan] = useState({ x: 0, y: 0 });
@@ -1090,6 +1093,8 @@ export default function Home() {
         if (key === "enter") {
           setCaseDecision(decisions[crtSelection % decisions.length]);
           setBranchEvidenceSeen([]);
+          setNotebookEvidence([]);
+          setInferenceComplete(false);
           setCaseBranchStep(0);
         }
         return;
@@ -1203,6 +1208,23 @@ export default function Home() {
     ? roomEvidence.find((item) => item.id === caseFocus.slice("roomEvidence:".length))
     : null;
   const roomEvidenceComplete = roomEvidence.length > 0 && roomEvidence.every((item) => branchEvidenceSeen.includes(item.id));
+  const notebookReady = caseDecision === "transfer" && roomEvidenceComplete;
+  const notebookFacts = [
+    { id: "arrival", code: "E-01", title: "材料先于正式接件出现", detail: "04/14 09:34，终端07已生成周静的四页扫描件。" },
+    { id: "avoidance", code: "E-02", title: "退件规避正式查阅", detail: "04/17正式接件后用时18秒退回，附件查阅0/4。" },
+    { id: "benefit", code: "E-03", title: "下一顺位提前对应房间", detail: "周静尚在补正期内，台历已记录274与3-214。" },
+  ];
+  const notebookFactsComplete = notebookFacts.every((fact) => notebookEvidence.includes(fact.id));
+  const toggleNotebookFact = (id: string) => {
+    if (inferenceComplete) return;
+    setNotebookEvidence((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
+  };
+  const completeNotebookInference = () => {
+    if (!notebookFactsComplete) return;
+    setInferenceComplete(true);
+    setCognitivePulse("既往参照 Si　→　外部执行 Te　｜　可能性扩散 Ne 介入");
+    window.setTimeout(() => setCognitivePulse(""), 2600);
+  };
   const caseOutcome = caseFollowupDecision
     ? caseFollowup?.choices.find((choice) => choice.id === caseFollowupDecision)?.outcome
     : null;
@@ -1226,6 +1248,13 @@ export default function Home() {
           {muted ? <VolumeX /> : <Volume2 />}
         </button>
       </header>
+      {cognitivePulse && (
+        <div className="cognitive-pulse" role="status">
+          <small>COGNITIVE FUNCTION TRACE</small>
+          <b>{cognitivePulse}</b>
+          <span><i /><i /><i /><i /><i /><i /><i /><i /></span>
+        </div>
+      )}
       {stage === "boot" && (
         <section className="boot declaration enter">
           <div className="document-head">
@@ -1601,9 +1630,16 @@ export default function Home() {
             <span>压在台历下的纸</span>
           </button>
           {caseRoom === "lin" && officeDoorUnlocked && (
-            <button className="hotspot exit-door" onClick={() => runSceneAction(() => setCaseRoom("corridor"))}>
-              <span>走廊</span>
-            </button>
+            <>
+              <button className="hotspot exit-door" onClick={() => runSceneAction(() => setCaseRoom("corridor"))}>
+                <span>走廊</span>
+              </button>
+              {notebookReady && (
+                <button className={`hotspot case-notebook ${inferenceComplete ? "seen" : ""}`} onClick={() => runSceneAction(() => openCaseObject("notebook"))}>
+                  <span>{inferenceComplete ? "调查笔记／已形成关联" : "调查笔记"}</span>
+                </button>
+              )}
+            </>
           )}
           {caseRoom === "corridor" && (
             <>
@@ -1632,17 +1668,29 @@ export default function Home() {
           <div className="scene-hint">
             {caseRoom === "lin"
               ? officeDoorUnlocked
-                ? branchSpace?.trigger
+                ? notebookReady && !inferenceComplete
+                  ? "三项记录尚未构成处理依据。桌上的调查笔记仍然空着。"
+                  : branchSpace?.trigger
                 : "拖动视角，检查桌面。需要处理的文件还在等你。"
               : caseRoom === "corridor"
                 ? `${branchSpace?.reason || "记录出现矛盾"} 前往${branchSpace?.place || "相关办公室"}。`
                 : roomEvidenceComplete
-                  ? `${branchSpace?.place || "相关房间"}。三处记录已经核对，处理入口已开放。`
+                  ? caseDecision === "transfer"
+                    ? `${branchSpace?.place || "相关房间"}。三处记录已经核对；需要回到林素云工位整理证据。`
+                    : `${branchSpace?.place || "相关房间"}。三处记录已经核对，处理入口已开放。`
                   : `${branchSpace?.place || "相关房间"}。已核对 ${branchEvidenceSeen.length}／${roomEvidence.length} 处记录。`}
           </div>
           {roomEvidenceComplete && caseRoom !== "lin" && caseRoom !== "corridor" && (
-            <button className="scene-investigation-action" onClick={() => { setCrtSelection(0); openCaseObject("branchDecision"); }}>
-              三处记录无法同时成立　整理处理意见
+            <button className="scene-investigation-action" onClick={() => {
+              if (caseDecision === "transfer") {
+                setCaseRoom("lin");
+                setCaseFocus("");
+              } else {
+                setCrtSelection(0);
+                openCaseObject("branchDecision");
+              }
+            }}>
+              {caseDecision === "transfer" ? "带着记录返回林素云工位" : "三处记录无法同时成立　整理处理意见"}
             </button>
           )}
           {caseFocus && (
@@ -1784,6 +1832,48 @@ export default function Home() {
                   <button onClick={() => { setBranchEvidenceSeen((items) => items.includes(activeRoomEvidence.id) ? items : [...items, activeRoomEvidence.id]); setCaseFocus(""); }}>
                     记入调查笔记　{branchEvidenceSeen.length + (branchEvidenceSeen.includes(activeRoomEvidence.id) ? 0 : 1)}／{roomEvidence.length}
                   </button>
+                </div>
+              )}
+              {caseFocus === "notebook" && notebookReady && (
+                <div className="scene-object investigation-notebook">
+                  <div className="notebook-spine" />
+                  <section className="notebook-page notebook-facts">
+                    <header><small>市政档案中心／个人复核笔记</small><b>2015.04.17</b></header>
+                    <h2>HS-0416-273　异常事实</h2>
+                    <p className="notebook-instruction">选择能够共同解释退件异常的事实。</p>
+                    <div className="notebook-fact-list">
+                      {notebookFacts.map((fact) => (
+                        <button key={fact.id} className={notebookEvidence.includes(fact.id) ? "selected" : ""} onClick={() => toggleNotebookFact(fact.id)}>
+                          <i>{notebookEvidence.includes(fact.id) ? "✓" : ""}</i>
+                          <span><small>{fact.code}</small><b>{fact.title}</b><em>{fact.detail}</em></span>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                  <section className="notebook-page notebook-reasoning">
+                    <header><small>事实／推定分栏</small><b>第 07 页</b></header>
+                    <div className={`handwritten-inference ${inferenceComplete ? "written" : ""}`}>
+                      {inferenceComplete ? (
+                        <>
+                          <p>材料按时到达，并被复核员提前查看。</p>
+                          <p>正式页面的“0／4”不是未知，<u>而是规避查阅留痕。</u></p>
+                          <p>273退件后，274将递补3-214。</p>
+                          <strong>结论：退件结果在正式接件前已经确定。</strong>
+                        </>
+                      ) : (
+                        <p className="blank-note">尚无足够关联。不能以动机代替事实。</p>
+                      )}
+                    </div>
+                    {!inferenceComplete ? (
+                      <button className="notebook-combine" disabled={!notebookFactsComplete} onClick={completeNotebookInference}>
+                        {notebookFactsComplete ? "串联三项事实" : `尚需选择 ${3 - notebookEvidence.length} 项事实`}
+                      </button>
+                    ) : (
+                      <button className="notebook-combine ready" onClick={() => { setCrtSelection(0); openCaseObject("branchDecision"); }}>
+                        据此整理处理意见
+                      </button>
+                    )}
+                  </section>
                 </div>
               )}
               {caseFocus === "branchDecision" && caseFollowup && (
