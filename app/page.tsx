@@ -681,7 +681,7 @@ const branchRoomEvidence: Record<string, BranchEvidenceItem[]> = {
     { id: "page-counter", label: "设备计数器", source: "传真机维护菜单", time: "17:51", body: "设备累计接收数比归档台账多 4 页。缺口只对应 04/14 这一批，缓存尚未被清除。", finding: "不是重复传真或系统残影；那四页实物确实经过这台机器。" },
   ],
   transfer: [
-    { id: "local-scan", label: "四页传真材料", source: "公共传真室／未登记材料", time: "04/14 09:26", room: "fax", image: "objects/chen-fax-pages.webp", imageAlt: "公共传真室取出的四页传真原件", body: "四页传真纸的线路校验均为 OK，接收时间为 04/14 09:26。分送签条上写着“陈国平代收”，登记号一栏空白。", finding: "材料在补正期限内已经到达公共传真室，但没有进入正式登记流程。" },
+    { id: "local-scan", label: "四页传真材料", source: "公共传真室／未登记材料", time: "04/14 09:26", room: "fax", image: "objects/fax-room-pages-v2.jpg", imageAlt: "公共传真室传真机旁摊开的四页传真原件与分送签条", body: "四页传真纸的线路校验均为 OK，接收时间为 04/14 09:26。分送签条上写着“陈国平代收”，登记号一栏空白。", finding: "材料在补正期限内已经到达公共传真室，但没有进入正式登记流程。" },
     { id: "terminal-history", label: "办件审计历史", source: "陈国平办公室／终端07", time: "用时 18s", room: "chen", image: "objects/chen-terminal-history-v2.webp", imageAlt: "陈国平复核终端上的办件审计历史", body: "17:39 精确检索 HS-0416-273；18:02:07 正式接件，18:02:21 选择“超过补正期限”，18:02:25 提交退回。办件页中的 4 份附件，查阅数为 0。", finding: "用时 18 秒不是因为仓促。他已经接触过传真原件，却避开会留下痕迹的正式附件入口。" },
     { id: "desk-note", label: "台历夹页", source: "陈国平办公室／四月台历", time: "04/14", room: "chen", image: "objects/chen-calendar-note.webp", imageAlt: "陈国平办公桌四月台历与夹在其中的手写便条", body: "04/14 的台历夹着流转单，便条写着：“274／3-214 暂缓登记／赵 09:31”。", finding: "273 号退件后，274 号会立即递补3-214。有人在周静补正期结束前，就已经预留了房间。" },
   ],
