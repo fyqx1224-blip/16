@@ -432,22 +432,22 @@ const caseBranches: Record<
     motive: "谈话记录第 6 页：问及是否听过当日下午的医院留言，林素云答：“听过。它不能补齐材料。”",
     records: [
       {
-        date: "04/18 09:12",
-        source: "安置名额变更日志",
-        body: "HS-0416-273 于 17:43 退回。18:00 批处理释放预留床位，顺位号 274 自动递补。",
-        flag: "系统未报错",
+        date: "04/17 18:00",
+        source: "安置名额批处理日志",
+        body: "HS-0416-273 退件后，系统在结算点释放 3-214。候补 274 的资格在 18:00:03 自动转正，登记联系人为赵主任办公室。周静失去的不是普通排队顺位，而是当晚唯一允许携两名未成年子女入住的家庭房。",
+        flag: "273 释放 → 274 递补｜间隔 3 秒",
       },
       {
-        date: "04/26 21:40",
-        source: "辖区协查通报",
-        body: "房东称承租人周静于 23 日晚搬离。同行两名儿童。现住址不详，电话停机。",
-        flag: "抄送：街道、派出所（无市档案中心）",
+        date: "04/18—04/26",
+        source: "街道回访与辖区协查",
+        body: "次日上午，周静带两个孩子到安置点才得知名额已释放。她回到原住处时门锁已被房东更换，寄存在楼道的行李于 23 日被清走。26 日协查只确认三人从汽车站离开，目的地不明。",
+        flag: "回访电话 6 次未接｜市档案中心未列入协查抄送",
       },
       {
         date: "06/02 14:05",
         source: "季度质量复核",
-        body: "抽查 071 号工位办件 40 宗，退件依据及签章齐全。HS-0416-273 不作问题件统计。",
-        flag: "得分：100",
+        body: "抽查 071 号工位 40 宗。系统只核对正式附件、时限与签章，传真室未登记材料不在抽样范围。HS-0416-273 因页面证据完整被判定为合规退件；林素云取得满分与 800 元绩效。",
+        flag: "形式审查：通过｜传真设备日志：未调取｜得分：100",
       },
     ],
   },
@@ -568,8 +568,8 @@ const caseFollowups: Record<
   reject: {
     time: "17:49",
     source: "传真机接收缓存",
-    discovery: "缓存中找到一页 04/14 09:26 的《共同居住证明》。收件人栏是陈国平，状态为“未入库”。",
-    prompt: "名额将在 11 分钟后释放。你如何处理这页传真？",
+    discovery: "三项记录拼出完整流转：04/14 09:26，公共传真机完整接收 HS-0416-273 共四页；09:31，陈国平在分送签条上代收，却没有填写登记号；设备累计数因此比归档台账多四页。周静所谓的“逾期补交”，实际是单位内部截留三天后才重新要求她上传。",
+    prompt: "距 18:00 名额结算还有 11 分钟。撤回退件会暴露我刚才未查传真台账，也会让父亲的续期件重新进入赵主任审核。我要怎么做？",
     choices: [
       { id: "restore", title: "撤回退件，补录传真", detail: "以实际收件时间重新提交；系统会记录撤回。", outcome: { applicant: "名额保留，次日上午完成安置。", father: "床位担保延续，但 800 元需自行补缴。", career: "撤回记录列为操作差错；季度得分 92。", evidence: "传真原件与接收缓存一并归档。" } },
       { id: "copy", title: "复印传真，不撤回", detail: "保留一份纸面副本；本次退件继续生效。", outcome: { applicant: "本批次名额释放，八日后失去联系。", father: "缴费在周五前补齐，来源不明。", career: "按时办结率保持 100%。", evidence: "副本藏在 071 号工位抽屉夹层，十一年后被发现。" } },
@@ -673,12 +673,22 @@ const roomScenes: Record<CaseRoom, string> = {
   backup: "scenes/cold-backup-room-1812.png",
 };
 
-type BranchEvidenceItem = { id: string; label: string; source: string; time: string; body: string; finding: string; room?: CaseRoom; image?: string; imageAlt?: string };
+type EvidenceClue = { id: string; label: string; detail: string; x: number; y: number; w: number; h: number };
+type BranchEvidenceItem = { id: string; label: string; source: string; time: string; body: string; finding: string; room?: CaseRoom; image?: string; imageAlt?: string; clues?: EvidenceClue[] };
 const branchRoomEvidence: Record<string, BranchEvidenceItem[]> = {
   reject: [
-    { id: "fax-roll", label: "接收记录", source: "传真机／当日接收清单", time: "04/14 09:26", image: "evidence/fax-receive-log.jpg", imageAlt: "传真机出纸口卷出的当日接收记录", body: "编号 HS-0416-273，接收 4 页，线路校验为 OK。纸卷上的页数与机器计数一致。", finding: "证明材料在补正期限内已经到达本单位，不是申请人迟交。" },
-    { id: "routing-slip", label: "分送签条", source: "传真分送夹／第二层", time: "04/14 09:31", image: "evidence/fax-routing-slip.jpg", imageAlt: "传真分送夹第二层露出的纸质分送签条", body: "收件栏写着“陈国平代收”，登记号一栏空白；背面另有铅笔字：“先放，等床位表。”", finding: "材料被人取走，却没有进入办件库。遗漏发生在登记之前。" },
-    { id: "page-counter", label: "设备计数器", source: "传真机维护菜单", time: "17:51", image: "evidence/fax-device-counter.jpg", imageAlt: "旧传真机维护菜单中的设备累计计数", body: "设备累计接收数比归档台账多 4 页。缺口只对应 04/14 这一批，缓存尚未被清除。", finding: "不是重复传真或系统残影；那四页实物确实经过这台机器。" },
+    { id: "fax-roll", label: "接收记录", source: "传真机／当日接收清单", time: "04/14 09:26", image: "evidence/fax-receive-log.jpg", imageAlt: "传真机出纸口卷出的当日接收记录", body: "这不是周静后来补交的材料，而是三天前由公共传真线路自动打印的原始接收记录。", finding: "四页材料在补正期限内已完整到达；逾期发生在单位内部流转，而不是申请端。", clues: [
+      { id: "row", label: "点开第 273 行", detail: "09:26　HS-0416-273　4页　线路校验 OK", x: 53, y: 50, w: 31, h: 18 },
+      { id: "dispatch", label: "查看分送栏", detail: "分送岗：陈国平　登记回写：空白", x: 63, y: 66, w: 25, h: 14 },
+    ] },
+    { id: "routing-slip", label: "分送签条", source: "传真分送夹／第二层", time: "04/14 09:31", image: "evidence/fax-routing-slip.jpg", imageAlt: "传真分送夹第二层露出的纸质分送签条", body: "签条被反扣在第二层，不属于正常待登记位置。纸边的压痕说明它曾与四页材料订在一起，后来被单独抽走。", finding: "陈国平取走材料后没有登记，并按“等床位表”的指示暂时截留。", clues: [
+      { id: "front", label: "翻看签条正面", detail: "HS-0416-273　代收：陈国平　登记号：＿＿＿＿", x: 40, y: 34, w: 23, h: 27 },
+      { id: "back", label: "检查背面铅笔字", detail: "“先放。等床位表。”　落笔时间约 09:31", x: 48, y: 50, w: 21, h: 22 },
+    ] },
+    { id: "page-counter", label: "设备计数器", source: "传真机维护菜单", time: "17:51", image: "evidence/fax-device-counter.jpg", imageAlt: "旧传真机维护菜单中的设备累计计数", body: "维护菜单的计数不可由普通经办员修改；归档台账却只统计已经取得登记号的传真。", finding: "设备实收 3724 页，台账只登记 3720 页；唯一缺口正是 HS-0416-273 的四页。", clues: [
+      { id: "machine", label: "读取设备累计数", detail: "接收累计：003724 页", x: 44, y: 38, w: 21, h: 12 },
+      { id: "ledger", label: "对照纸质台账", detail: "归档累计：003720 页　差额：+4", x: 28, y: 78, w: 35, h: 13 },
+    ] },
   ],
   transfer: [
     { id: "local-scan", label: "四页传真材料", source: "公共传真室／未登记材料", time: "04/14 09:26", room: "fax", image: "objects/fax-room-pages-v2.jpg", imageAlt: "公共传真室传真机旁摊开的四页传真原件与分送签条", body: "四页传真纸的线路校验均为 OK，接收时间为 04/14 09:26。分送签条上写着“陈国平代收”，登记号一栏空白。", finding: "材料在补正期限内已经到达公共传真室，但没有进入正式登记流程。" },
@@ -730,6 +740,7 @@ export default function Home() {
   const [caseBranchStep, setCaseBranchStep] = useState(0);
   const [caseFollowupDecision, setCaseFollowupDecision] = useState("");
   const [branchEvidenceSeen, setBranchEvidenceSeen] = useState<string[]>([]);
+  const [evidenceCluesSeen, setEvidenceCluesSeen] = useState<Record<string, string[]>>({});
   const [notebookEvidence, setNotebookEvidence] = useState<string[]>([]);
   const [inferenceComplete, setInferenceComplete] = useState(false);
   const [cognitivePulse, setCognitivePulse] = useState("");
@@ -1208,6 +1219,8 @@ export default function Home() {
   const activeRoomEvidence = caseFocus.startsWith("roomEvidence:")
     ? roomEvidence.find((item) => item.id === caseFocus.slice("roomEvidence:".length))
     : null;
+  const activeCluesSeen = activeRoomEvidence ? evidenceCluesSeen[activeRoomEvidence.id] || [] : [];
+  const activeCluesComplete = !activeRoomEvidence?.clues?.length || activeRoomEvidence.clues.every((clue) => activeCluesSeen.includes(clue.id));
   const roomEvidenceComplete = roomEvidence.length > 0 && roomEvidence.every((item) => branchEvidenceSeen.includes(item.id));
   const notebookReady = caseDecision === "transfer" && roomEvidenceComplete;
   const notebookFacts = [
@@ -1847,12 +1860,32 @@ export default function Home() {
                           <div className="audit-row alert"><span>18:02:07</span><span>陈国平接件</span><span>超过补正期限</span><span>18s</span><span>0/4</span></div>
                         </div>
                       )}
+                      {activeRoomEvidence.clues?.map((clue, clueIndex) => {
+                        const discovered = activeCluesSeen.includes(clue.id);
+                        return (
+                          <button
+                            key={clue.id}
+                            className={`evidence-photo-clue ${discovered ? "discovered" : ""}`}
+                            style={{ left: `${clue.x}%`, top: `${clue.y}%`, width: `${clue.w}%`, height: `${clue.h}%` }}
+                            onClick={() => setEvidenceCluesSeen((current) => ({
+                              ...current,
+                              [activeRoomEvidence.id]: discovered
+                                ? current[activeRoomEvidence.id] || []
+                                : [...(current[activeRoomEvidence.id] || []), clue.id],
+                            }))}
+                            aria-label={clue.label}
+                          >
+                            <i>{String(clueIndex + 1).padStart(2, "0")}</i>
+                            <span><b>{clue.label}</b><em>{discovered ? clue.detail : "点击核验照片中的原始信息"}</em></span>
+                          </button>
+                        );
+                      })}
                     </figure>
                   )}
                   <p>{activeRoomEvidence.body}</p>
-                  <div className="evidence-finding"><small>交叉核对</small><b>{activeRoomEvidence.finding}</b></div>
-                  <button onClick={() => { setBranchEvidenceSeen((items) => items.includes(activeRoomEvidence.id) ? items : [...items, activeRoomEvidence.id]); setCaseFocus(""); }}>
-                    记入调查笔记　{branchEvidenceSeen.length + (branchEvidenceSeen.includes(activeRoomEvidence.id) ? 0 : 1)}／{roomEvidence.length}
+                  <div className={`evidence-finding ${activeCluesComplete ? "resolved" : "unresolved"}`}><small>{activeCluesComplete ? "交叉核对完成" : `尚需核验 ${(activeRoomEvidence.clues?.length || 0) - activeCluesSeen.length} 处`}</small><b>{activeCluesComplete ? activeRoomEvidence.finding : "先检查照片中标出的原始记录，不能用结论代替证据。"}</b></div>
+                  <button disabled={!activeCluesComplete} onClick={() => { setBranchEvidenceSeen((items) => items.includes(activeRoomEvidence.id) ? items : [...items, activeRoomEvidence.id]); setCaseFocus(""); }}>
+                    {activeCluesComplete ? `记入调查笔记　${branchEvidenceSeen.length + (branchEvidenceSeen.includes(activeRoomEvidence.id) ? 0 : 1)}／${roomEvidence.length}` : "核验照片中的全部信息后才能记录"}
                   </button>
                 </div>
               )}
