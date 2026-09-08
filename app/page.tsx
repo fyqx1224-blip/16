@@ -676,9 +676,9 @@ const roomScenes: Record<CaseRoom, string> = {
 type BranchEvidenceItem = { id: string; label: string; source: string; time: string; body: string; finding: string; room?: CaseRoom; image?: string; imageAlt?: string };
 const branchRoomEvidence: Record<string, BranchEvidenceItem[]> = {
   reject: [
-    { id: "fax-roll", label: "接收记录", source: "传真机／当日接收清单", time: "04/14 09:26", body: "编号 HS-0416-273，接收 4 页，线路校验为 OK。纸卷上的页数与机器计数一致。", finding: "证明材料在补正期限内已经到达本单位，不是申请人迟交。" },
-    { id: "routing-slip", label: "分送签条", source: "传真分送夹／第二层", time: "04/14 09:31", body: "收件栏写着“陈国平代收”，登记号一栏空白；背面另有铅笔字：“先放，等床位表。”", finding: "材料被人取走，却没有进入办件库。遗漏发生在登记之前。" },
-    { id: "page-counter", label: "设备计数器", source: "传真机维护菜单", time: "17:51", body: "设备累计接收数比归档台账多 4 页。缺口只对应 04/14 这一批，缓存尚未被清除。", finding: "不是重复传真或系统残影；那四页实物确实经过这台机器。" },
+    { id: "fax-roll", label: "接收记录", source: "传真机／当日接收清单", time: "04/14 09:26", image: "evidence/fax-receive-log.jpg", imageAlt: "传真机出纸口卷出的当日接收记录", body: "编号 HS-0416-273，接收 4 页，线路校验为 OK。纸卷上的页数与机器计数一致。", finding: "证明材料在补正期限内已经到达本单位，不是申请人迟交。" },
+    { id: "routing-slip", label: "分送签条", source: "传真分送夹／第二层", time: "04/14 09:31", image: "evidence/fax-routing-slip.jpg", imageAlt: "传真分送夹第二层露出的纸质分送签条", body: "收件栏写着“陈国平代收”，登记号一栏空白；背面另有铅笔字：“先放，等床位表。”", finding: "材料被人取走，却没有进入办件库。遗漏发生在登记之前。" },
+    { id: "page-counter", label: "设备计数器", source: "传真机维护菜单", time: "17:51", image: "evidence/fax-device-counter.jpg", imageAlt: "旧传真机维护菜单中的设备累计计数", body: "设备累计接收数比归档台账多 4 页。缺口只对应 04/14 这一批，缓存尚未被清除。", finding: "不是重复传真或系统残影；那四页实物确实经过这台机器。" },
   ],
   transfer: [
     { id: "local-scan", label: "四页传真材料", source: "公共传真室／未登记材料", time: "04/14 09:26", room: "fax", image: "objects/fax-room-pages-v2.jpg", imageAlt: "公共传真室传真机旁摊开的四页传真原件与分送签条", body: "四页传真纸的线路校验均为 OK，接收时间为 04/14 09:26。分送签条上写着“陈国平代收”，登记号一栏空白。", finding: "材料在补正期限内已经到达公共传真室，但没有进入正式登记流程。" },
@@ -686,19 +686,19 @@ const branchRoomEvidence: Record<string, BranchEvidenceItem[]> = {
     { id: "desk-note", label: "台历夹页", source: "陈国平办公室／四月台历", time: "04/14", room: "chen", image: "objects/chen-calendar-note.webp", imageAlt: "陈国平办公桌四月台历与夹在其中的手写便条", body: "04/14 的台历夹着流转单，便条写着：“274／3-214 暂缓登记／赵 09:31”。", finding: "273 号退件后，274 号会立即递补3-214。有人在周静补正期结束前，就已经预留了房间。" },
   ],
   hold: [
-    { id: "remote-session", label: "远程会话", source: "组长终端／会话记录", time: "19:06", body: "主管账户从 02 号终端解除占件。门禁记录却显示赵主任 18:31 已经离开大楼。", finding: "解除挂起不是赵主任在办公室亲自完成，主管权限可能被借用。" },
-    { id: "admin-token", label: "备用权限匙", source: "右侧抽屉／交接盒", time: "未登记", body: "备用 USB 权限匙仍插在交接盒里，领用表今天没有签名。盒盖内侧粘着终端 02 的登录步骤。", finding: "任何知道流程的人都能以组长账户操作，而且不会留下自己的工号。" },
-    { id: "father-file", label: "担保续期件", source: "待签文件最上层", time: "04/18 待办", body: "林国安的住院床位担保续期件压在林素云的超时说明上，两份文件都等赵主任签字。", finding: "林素云若追查主管账户，父亲的续期也会由同一个人决定。" },
+    { id: "remote-session", label: "远程会话", source: "组长终端／会话记录", time: "19:06", image: "evidence/supervisor-remote-session.jpg", imageAlt: "组长办公室旧终端显示的远程会话记录", body: "主管账户从 02 号终端解除占件。门禁记录却显示赵主任 18:31 已经离开大楼。", finding: "解除挂起不是赵主任在办公室亲自完成，主管权限可能被借用。" },
+    { id: "admin-token", label: "备用权限匙", source: "右侧抽屉／交接盒", time: "未登记", image: "evidence/supervisor-admin-token.jpg", imageAlt: "组长办公桌抽屉内的备用权限匙和领用表", body: "备用 USB 权限匙仍插在交接盒里，领用表今天没有签名。盒盖内侧粘着终端 02 的登录步骤。", finding: "任何知道流程的人都能以组长账户操作，而且不会留下自己的工号。" },
+    { id: "father-file", label: "担保续期件", source: "待签文件最上层", time: "04/18 待办", image: "evidence/supervisor-father-file.jpg", imageAlt: "待签文件堆中的住院床位担保续期件", body: "林国安的住院床位担保续期件压在林素云的超时说明上，两份文件都等赵主任签字。", finding: "林素云若追查主管账户，父亲的续期也会由同一个人决定。" },
   ],
   notify: [
-    { id: "upload-pages", label: "失败附件", source: "接收终端／失败队列", time: "23:36", body: "账号 ZJ2047 上传 4 张照片。第三张拍到传真回执存根，日期清楚写着 04/14。", finding: "周静补传的不是新材料，而是在证明单位三天前已经收过。" },
-    { id: "gateway-log", label: "网关日志", source: "材料接收网关／E113", time: "23:36—23:41", body: "七次上传都在文件校验通过后被拒。原因始终是“原办件已关闭”，没有一次显示图片损坏。", finding: "申请人严格照电话操作；失败来自林素云先前的退件，而非材料本身。" },
-    { id: "call-capture", label: "外呼截录", source: "合规录音缓存", time: "17:51", body: "拨号清单记录通话 43 秒，合规录音只有 39 秒。波形中间缺口恰好 4 秒，不在开头或结尾。", finding: "系统没有漏录接通音；有人删掉了通话中间的一句话。" },
+    { id: "upload-pages", label: "失败附件", source: "接收终端／失败队列", time: "23:36", image: "evidence/intake-upload-pages.jpg", imageAlt: "接收终端旁打印出的四张失败上传照片", body: "账号 ZJ2047 上传 4 张照片。第三张拍到传真回执存根，日期清楚写着 04/14。", finding: "周静补传的不是新材料，而是在证明单位三天前已经收过。" },
+    { id: "gateway-log", label: "网关日志", source: "材料接收网关／E113", time: "23:36—23:41", image: "evidence/intake-gateway-log.jpg", imageAlt: "旧接收终端屏幕上的七条网关失败记录", body: "七次上传都在文件校验通过后被拒。原因始终是“原办件已关闭”，没有一次显示图片损坏。", finding: "申请人严格照电话操作；失败来自林素云先前的退件，而非材料本身。" },
+    { id: "call-capture", label: "外呼截录", source: "合规录音缓存", time: "17:51", image: "evidence/intake-call-capture.jpg", imageAlt: "合规录音设备屏幕上中断四秒的电话波形", body: "拨号清单记录通话 43 秒，合规录音只有 39 秒。波形中间缺口恰好 4 秒，不在开头或结尾。", finding: "系统没有漏录接通音；有人删掉了通话中间的一句话。" },
   ],
   alter: [
-    { id: "field-diff", label: "字段差异单", source: "校验打印机／异常页", time: "17:43", body: "receipt_time 从 04/17 00:03:11 改为 04/16 23:59:00，相差 251 秒。操作账户为 A-071。", finding: "林素云确实改写了时间；这一笔无法解释成系统误差。" },
-    { id: "backup-index", label: "旧镜像索引", source: "04/14 夜间备份／校验目录", time: "04/14 23:00", body: "镜像中已存在同案传真摘要，校验码与今晚四页附件一致，但正式办件库没有对应登记。", finding: "在林素云改时间之前，系统已经保存了材料按时到达的证明。" },
-    { id: "audit-job", label: "提前的审计任务", source: "备份机／任务计划", time: "18:12", body: "主管账户把原定 02:00 的差异镜像提前到 18:12，任务创建于林素云修改后的 29 秒。", finding: "有人看见她改写，并立即封存证据；这更像等她动手，而不是例行审计。" },
+    { id: "field-diff", label: "字段差异单", source: "校验打印机／异常页", time: "17:43", image: "evidence/backup-field-diff.jpg", imageAlt: "地下备份室校验打印机吐出的字段差异单", body: "receipt_time 从 04/17 00:03:11 改为 04/16 23:59:00，相差 251 秒。操作账户为 A-071。", finding: "林素云确实改写了时间；这一笔无法解释成系统误差。" },
+    { id: "backup-index", label: "旧镜像索引", source: "04/14 夜间备份／校验目录", time: "04/14 23:00", image: "evidence/backup-index.jpg", imageAlt: "磁带盒旁翻开的旧镜像索引目录", body: "镜像中已存在同案传真摘要，校验码与今晚四页附件一致，但正式办件库没有对应登记。", finding: "在林素云改时间之前，系统已经保存了材料按时到达的证明。" },
+    { id: "audit-job", label: "提前的审计任务", source: "备份机／任务计划", time: "18:12", image: "evidence/backup-audit-job.jpg", imageAlt: "冷备份终端上提前启动的审计任务", body: "主管账户把原定 02:00 的差异镜像提前到 18:12，任务创建于林素云修改后的 29 秒。", finding: "有人看见她改写，并立即封存证据；这更像等她动手，而不是例行审计。" },
   ],
 };
 
