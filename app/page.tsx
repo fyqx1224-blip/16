@@ -673,7 +673,7 @@ const roomScenes: Record<CaseRoom, string> = {
   backup: "scenes/cold-backup-room-1812.png",
 };
 
-type BranchEvidenceItem = { id: string; label: string; source: string; time: string; body: string; finding: string; image?: string; imageAlt?: string };
+type BranchEvidenceItem = { id: string; label: string; source: string; time: string; body: string; finding: string; room?: CaseRoom; image?: string; imageAlt?: string };
 const branchRoomEvidence: Record<string, BranchEvidenceItem[]> = {
   reject: [
     { id: "fax-roll", label: "接收记录", source: "传真机／当日接收清单", time: "04/14 09:26", body: "编号 HS-0416-273，接收 4 页，线路校验为 OK。纸卷上的页数与机器计数一致。", finding: "证明材料在补正期限内已经到达本单位，不是申请人迟交。" },
@@ -681,9 +681,9 @@ const branchRoomEvidence: Record<string, BranchEvidenceItem[]> = {
     { id: "page-counter", label: "设备计数器", source: "传真机维护菜单", time: "17:51", body: "设备累计接收数比归档台账多 4 页。缺口只对应 04/14 这一批，缓存尚未被清除。", finding: "不是重复传真或系统残影；那四页实物确实经过这台机器。" },
   ],
   transfer: [
-    { id: "local-scan", label: "四页传真材料", source: "传真机出纸托盘／未登记材料", time: "04/14 09:26", image: "objects/chen-fax-pages.webp", imageAlt: "陈国平办公桌旁传真机取出的四页传真原件", body: "四页传真纸的线路校验均为 OK，接收时间为 04/14 09:26。分送签条上写着“陈国平代收”，登记号一栏空白。", finding: "材料在补正期限内已经到达这间办公室，但没有进入正式登记流程。" },
-    { id: "terminal-history", label: "办件审计历史", source: "复核终端／最近操作", time: "用时 18s", image: "objects/chen-terminal-history-v2.webp", imageAlt: "陈国平复核终端上的办件审计历史", body: "17:39 精确检索 HS-0416-273；18:02:07 正式接件，18:02:21 选择“超过补正期限”，18:02:25 提交退回。办件页中的 4 份附件，查阅数为 0。", finding: "用时 18 秒不是因为仓促。他已经接触过传真原件，却避开会留下痕迹的正式附件入口。" },
-    { id: "desk-note", label: "台历夹页", source: "陈国平办公桌／四月台历", time: "04/14", image: "objects/chen-calendar-note.webp", imageAlt: "陈国平办公桌四月台历与夹在其中的手写便条", body: "04/14 的台历夹着流转单，便条写着：“274／3-214 暂缓登记／赵 09:31”。", finding: "273 号退件后，274 号会立即递补3-214。有人在周静补正期结束前，就已经预留了房间。" },
+    { id: "local-scan", label: "四页传真材料", source: "公共传真室／未登记材料", time: "04/14 09:26", room: "fax", image: "objects/chen-fax-pages.webp", imageAlt: "公共传真室取出的四页传真原件", body: "四页传真纸的线路校验均为 OK，接收时间为 04/14 09:26。分送签条上写着“陈国平代收”，登记号一栏空白。", finding: "材料在补正期限内已经到达公共传真室，但没有进入正式登记流程。" },
+    { id: "terminal-history", label: "办件审计历史", source: "陈国平办公室／终端07", time: "用时 18s", room: "chen", image: "objects/chen-terminal-history-v2.webp", imageAlt: "陈国平复核终端上的办件审计历史", body: "17:39 精确检索 HS-0416-273；18:02:07 正式接件，18:02:21 选择“超过补正期限”，18:02:25 提交退回。办件页中的 4 份附件，查阅数为 0。", finding: "用时 18 秒不是因为仓促。他已经接触过传真原件，却避开会留下痕迹的正式附件入口。" },
+    { id: "desk-note", label: "台历夹页", source: "陈国平办公室／四月台历", time: "04/14", room: "chen", image: "objects/chen-calendar-note.webp", imageAlt: "陈国平办公桌四月台历与夹在其中的手写便条", body: "04/14 的台历夹着流转单，便条写着：“274／3-214 暂缓登记／赵 09:31”。", finding: "273 号退件后，274 号会立即递补3-214。有人在周静补正期结束前，就已经预留了房间。" },
   ],
   hold: [
     { id: "remote-session", label: "远程会话", source: "组长终端／会话记录", time: "19:06", body: "主管账户从 02 号终端解除占件。门禁记录却显示赵主任 18:31 已经离开大楼。", finding: "解除挂起不是赵主任在办公室亲自完成，主管权限可能被借用。" },
@@ -1049,7 +1049,7 @@ export default function Home() {
     pressCrtKey("power", () => {
       startSound();
       setCrtState("boot");
-      window.setTimeout(() => setCrtState("login"), 2200);
+      window.setTimeout(() => setCrtState("login"), 5200);
     });
   };
   const useCrtKeyboard = (key: "w" | "a" | "s" | "d" | "enter" | "escape") => {
@@ -1204,6 +1204,7 @@ export default function Home() {
   const branchSpace = caseDecision ? branchSpaces[caseDecision] : null;
   const caseFollowup = caseDecision ? caseFollowups[caseDecision] : null;
   const roomEvidence = caseDecision ? branchRoomEvidence[caseDecision] || [] : [];
+  const visibleRoomEvidence = roomEvidence.filter((item) => item.room ? item.room === caseRoom : caseRoom === branchSpace?.room);
   const activeRoomEvidence = caseFocus.startsWith("roomEvidence:")
     ? roomEvidence.find((item) => item.id === caseFocus.slice("roomEvidence:".length))
     : null;
@@ -1589,7 +1590,7 @@ export default function Home() {
             <img
               className="scene-image"
               src={asset(roomScenes[caseRoom])}
-              alt={caseRoom === "lin" ? "17:42 的市政档案办公室" : caseRoom === "corridor" ? "档案中心走廊" : branchSpace?.place || "档案中心内部空间"}
+              alt={caseRoom === "lin" ? "17:42 的市政档案办公室" : caseRoom === "corridor" ? "档案中心走廊" : caseRoom === "fax" ? "公共传真室" : caseRoom === "chen" ? "陈国平办公室" : branchSpace?.place || "档案中心内部空间"}
               draggable={false}
               onLoad={(event) => setSceneAspect(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight)}
             />
@@ -1643,9 +1644,20 @@ export default function Home() {
           )}
           {caseRoom === "corridor" && (
             <>
-              <button className="hotspot chen-door" onClick={() => runSceneAction(() => setCaseRoom(branchSpace?.room || "chen"))}>
-                <span>{branchSpace?.place || "半开的办公室"}</span>
-              </button>
+              {caseDecision === "transfer" ? (
+                <>
+                  <button className="hotspot chen-door" onClick={() => runSceneAction(() => setCaseRoom("chen"))}>
+                    <span>复核办公室　陈国平</span>
+                  </button>
+                  <button className="hotspot fax-door" onClick={() => runSceneAction(() => setCaseRoom("fax"))}>
+                    <span>公共传真室</span>
+                  </button>
+                </>
+              ) : (
+                <button className="hotspot chen-door" onClick={() => runSceneAction(() => setCaseRoom(branchSpace?.room || "chen"))}>
+                  <span>{branchSpace?.place || "半开的办公室"}</span>
+                </button>
+              )}
               <button className="hotspot corridor-back" onClick={() => runSceneAction(() => setCaseRoom("lin"))}>
                 <span>返回我的工位</span>
               </button>
@@ -1653,7 +1665,7 @@ export default function Home() {
           )}
           {caseRoom !== "lin" && caseRoom !== "corridor" && (
             <>
-              {roomEvidence.map((item, evidenceIndex) => (
+              {visibleRoomEvidence.map((item, evidenceIndex) => (
                 <button key={item.id} className={`hotspot branch-object branch-object-${evidenceIndex + 1} branch-${item.id} ${branchEvidenceSeen.includes(item.id) ? "seen" : ""}`} onClick={() => runSceneAction(() => openCaseObject(`roomEvidence:${item.id}`))}>
                   <span>{branchEvidenceSeen.includes(item.id) ? `已核对／${item.label}` : item.label}</span>
                 </button>
@@ -1678,7 +1690,9 @@ export default function Home() {
                   ? caseDecision === "transfer"
                     ? `${branchSpace?.place || "相关房间"}。三处记录已经核对；我需要回到工位整理证据。`
                     : `${branchSpace?.place || "相关房间"}。三处记录已经核对，处理入口已开放。`
-                  : `${branchSpace?.place || "相关房间"}。已核对 ${branchEvidenceSeen.length}／${roomEvidence.length} 处记录。`}
+                  : caseDecision === "transfer"
+                    ? `${caseRoom === "fax" ? "公共传真室" : "陈国平办公室"}。本房间可核对 ${visibleRoomEvidence.length} 项；证据链 ${branchEvidenceSeen.length}／${roomEvidence.length}。`
+                    : `${branchSpace?.place || "相关房间"}。已核对 ${branchEvidenceSeen.length}／${roomEvidence.length} 处记录。`}
           </div>
           {roomEvidenceComplete && caseRoom !== "lin" && caseRoom !== "corridor" && (
             <button className="scene-investigation-action" onClick={() => {
@@ -1924,12 +1938,15 @@ export default function Home() {
                   <div className={`crt-glass crt-${crtState}`}>
                     {crtState === "boot" && (
                       <div className="crt-boot-sequence" aria-live="polite">
-                        <i />
-                        <div>
-                          <span>ARCHIVE BIOS 2.7</span>
-                          <span>MEMORY CHECK ........ 640K OK</span>
-                          <span>LOADING MUNICIPAL RECORDS SYSTEM</span>
-                          <b>TERMINAL 04 / OPERATOR A-071</b>
+                        <div className="bios-phase">
+                          <span>PHOENIXBIOS 4.0 RELEASE 6.0</span>
+                          <span>MEMORY TEST: 524288K OK</span>
+                          <span>PRIMARY MASTER: ST340014A</span>
+                          <b>BOOT FROM HARD DISK...</b>
+                        </div>
+                        <div className="xp-boot-phase">
+                          <div className="xp-boot-logo"><i>Microsoft</i><b>Windows<span>xp</span></b><em>Professional</em></div>
+                          <div className="xp-loading-track"><span /><span /><span /></div>
                         </div>
                       </div>
                     )}
