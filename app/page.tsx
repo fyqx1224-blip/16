@@ -741,6 +741,7 @@ export default function Home() {
   const [caseFollowupDecision, setCaseFollowupDecision] = useState("");
   const [branchEvidenceSeen, setBranchEvidenceSeen] = useState<string[]>([]);
   const [evidenceCluesSeen, setEvidenceCluesSeen] = useState<Record<string, string[]>>({});
+  const [routingSlipSide, setRoutingSlipSide] = useState<"front" | "back">("front");
   const [notebookEvidence, setNotebookEvidence] = useState<string[]>([]);
   const [inferenceComplete, setInferenceComplete] = useState(false);
   const [cognitivePulse, setCognitivePulse] = useState("");
@@ -913,6 +914,10 @@ export default function Home() {
   const openCaseObject = (object: string) => {
     setCaseFocus(object);
     if (object === "phone") setPhoneStep("idle");
+    if (object === "roomEvidence:routing-slip") {
+      setRoutingSlipSide("front");
+      setEvidenceCluesSeen((current) => ({ ...current, "routing-slip": ["front"] }));
+    }
   };
   const beginSceneDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!window.matchMedia("(max-width: 620px)").matches) return;
@@ -1851,7 +1856,34 @@ export default function Home() {
                   <h2>{activeRoomEvidence.label}</h2>
                   {activeRoomEvidence.image && (
                     <figure className="room-evidence-photo">
-                      <img src={asset(activeRoomEvidence.image)} alt={activeRoomEvidence.imageAlt || activeRoomEvidence.label} />
+                      <img
+                        key={activeRoomEvidence.id === "routing-slip" ? routingSlipSide : activeRoomEvidence.image}
+                        className={activeRoomEvidence.id === "routing-slip" ? "paper-frame" : ""}
+                        src={asset(activeRoomEvidence.id === "routing-slip" ? `evidence/fax-routing-slip-${routingSlipSide}-v2.jpg` : activeRoomEvidence.image)}
+                        alt={activeRoomEvidence.imageAlt || activeRoomEvidence.label}
+                      />
+                      {activeRoomEvidence.id === "routing-slip" && (
+                        <>
+                          <button
+                            className={`physical-paper routing-slip-paper ${routingSlipSide}`}
+                            aria-label={routingSlipSide === "front" ? "翻到分送签条背面" : "翻回分送签条正面"}
+                            onClick={() => {
+                              const next = routingSlipSide === "front" ? "back" : "front";
+                              setRoutingSlipSide(next);
+                              if (next === "back") setEvidenceCluesSeen((current) => ({ ...current, "routing-slip": ["front", "back"] }));
+                            }}
+                          >
+                            <span className="paper-print">
+                              {routingSlipSide === "front" ? (
+                                <><b>传真材料分送签条</b><i>办件编号　HS-0416-273</i><i>接收时间　04/14　09:26</i><i>页　　数　4 页</i><i>代 收 人　陈国平</i><strong>登记编号　＿＿＿＿＿＿</strong></>
+                              ) : (
+                                <><b>背面手记</b><em>先放。</em><em>等床位表。</em><i>09:31</i></>
+                              )}
+                            </span>
+                            <small>{routingSlipSide === "front" ? "点击纸张，翻到背面" : "点击纸张，翻回正面"}</small>
+                          </button>
+                        </>
+                      )}
                       {activeRoomEvidence.id === "terminal-history" && (
                         <div className="audit-screen-overlay" aria-label="办件审计记录的准确文本">
                           <header>办件审计历史　HS-0416-273</header>
@@ -1860,7 +1892,7 @@ export default function Home() {
                           <div className="audit-row alert"><span>18:02:07</span><span>陈国平接件</span><span>超过补正期限</span><span>18s</span><span>0/4</span></div>
                         </div>
                       )}
-                      {activeRoomEvidence.clues?.map((clue, clueIndex) => {
+                      {activeRoomEvidence.id !== "routing-slip" && activeRoomEvidence.clues?.map((clue, clueIndex) => {
                         const discovered = activeCluesSeen.includes(clue.id);
                         return (
                           <button
