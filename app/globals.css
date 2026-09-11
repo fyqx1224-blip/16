@@ -2310,8 +2310,14 @@ html .photo-space .awakened .eye.right {
 @keyframes paper-scene-turn { 0% { opacity: .25; transform: perspective(900px) rotateY(11deg) scale(.985); filter: blur(2px); } 100% { opacity: 1; transform: none; filter: none; } }
 .physical-paper { position: absolute; z-index: 4; border: 0; background: transparent; color: #25221d; text-align: left; cursor: grab; transform-origin: center; }
 .physical-paper:active { cursor: grabbing; }
-.routing-slip-paper.front { left: 63.4%; top: 59.2%; width: 30.6%; height: 31%; transform: perspective(900px) rotateX(4deg) rotateZ(2.2deg); }
-.routing-slip-paper.back { left: 63.2%; top: 53.5%; width: 31.3%; height: 37%; transform: perspective(900px) rotateX(5deg) rotateZ(2.8deg); }
+.routing-slip-paper.front,
+.routing-slip-paper.back {
+  left: 53%;
+  top: 51%;
+  width: 46%;
+  height: 45%;
+  transform: perspective(900px) rotateX(4deg) rotateZ(2.2deg);
+}
 .physical-paper > small { position: absolute; right: 2%; bottom: -7%; padding: 4px 7px; border: 1px solid #aaa58f; background: #11130fce; color: #e5e0c7; font: 8px SimSun, "宋体", sans-serif; letter-spacing: .08em; opacity: .75; box-shadow: 0 4px 13px #0008; }
 .physical-paper:hover > small { opacity: 1; }
 .evidence-photo-clue { position: absolute; display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 6px; align-items: center; min-width: 118px; padding: 5px 7px; border: 1px solid #d9d5b899; background: #090b09c7; color: #e7e3cc; text-align: left; box-shadow: 0 0 0 1px #0009, 0 5px 22px #000b; cursor: crosshair; backdrop-filter: blur(2px); transition: background .2s, border-color .2s, transform .2s; }

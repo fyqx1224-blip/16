@@ -1859,7 +1859,7 @@ export default function Home() {
                       <img
                         key={activeRoomEvidence.id === "routing-slip" ? routingSlipSide : activeRoomEvidence.image}
                         className={activeRoomEvidence.id === "routing-slip" ? "paper-frame" : ""}
-                        src={asset(activeRoomEvidence.id === "routing-slip" ? `evidence/fax-routing-slip-${routingSlipSide}-v3.jpg` : activeRoomEvidence.image)}
+                        src={asset(activeRoomEvidence.id === "routing-slip" ? `evidence/fax-routing-slip-${routingSlipSide}-v4.jpg` : activeRoomEvidence.image)}
                         alt={activeRoomEvidence.imageAlt || activeRoomEvidence.label}
                       />
                       {activeRoomEvidence.id === "routing-slip" && (
