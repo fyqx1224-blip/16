@@ -24,11 +24,11 @@ type Question = {
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 const ROUTING_SLIP_FRAMES = [
   "evidence/fax-routing-slip-front-v4.jpg",
-  "evidence/fax-routing-slip-flip-01-v1.jpg",
-  "evidence/fax-routing-slip-flip-02-v1.jpg",
-  "evidence/fax-routing-slip-flip-03-v1.jpg",
-  "evidence/fax-routing-slip-flip-04-v1.jpg",
-  "evidence/fax-routing-slip-flip-05-v1.jpg",
+  "evidence/fax-routing-slip-flip-01-v2.jpg",
+  "evidence/fax-routing-slip-flip-02-v2.jpg",
+  "evidence/fax-routing-slip-flip-03-v2.jpg",
+  "evidence/fax-routing-slip-flip-04-v2.jpg",
+  "evidence/fax-routing-slip-flip-05-v2.jpg",
   "evidence/fax-routing-slip-back-v4.jpg",
 ] as const;
 const stacks: Record<string, FunctionKey[]> = {
