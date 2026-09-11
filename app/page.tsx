@@ -22,6 +22,15 @@ type Question = {
 };
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+const ROUTING_SLIP_FRAMES = [
+  "evidence/fax-routing-slip-front-v4.jpg",
+  "evidence/fax-routing-slip-flip-01-v1.jpg",
+  "evidence/fax-routing-slip-flip-02-v1.jpg",
+  "evidence/fax-routing-slip-flip-03-v1.jpg",
+  "evidence/fax-routing-slip-flip-04-v1.jpg",
+  "evidence/fax-routing-slip-flip-05-v1.jpg",
+  "evidence/fax-routing-slip-back-v4.jpg",
+] as const;
 const stacks: Record<string, FunctionKey[]> = {
   ISTJ: ["Si", "Te", "Fi", "Ne"],
   ISFJ: ["Si", "Fe", "Ti", "Ne"],
@@ -742,6 +751,8 @@ export default function Home() {
   const [branchEvidenceSeen, setBranchEvidenceSeen] = useState<string[]>([]);
   const [evidenceCluesSeen, setEvidenceCluesSeen] = useState<Record<string, string[]>>({});
   const [routingSlipSide, setRoutingSlipSide] = useState<"front" | "back">("front");
+  const [routingSlipFrame, setRoutingSlipFrame] = useState(0);
+  const [routingSlipAnimating, setRoutingSlipAnimating] = useState(false);
   const [notebookEvidence, setNotebookEvidence] = useState<string[]>([]);
   const [inferenceComplete, setInferenceComplete] = useState(false);
   const [cognitivePulse, setCognitivePulse] = useState("");
@@ -765,6 +776,12 @@ export default function Home() {
   const card = useRef<HTMLDivElement>(null);
   const voicemail = useRef<HTMLAudioElement>(null);
   const sound = useRef<{ ctx: AudioContext; master: GainNode } | null>(null);
+  useEffect(() => {
+    ROUTING_SLIP_FRAMES.forEach((frame) => {
+      const image = new Image();
+      image.src = asset(frame);
+    });
+  }, []);
   useEffect(() => {
     document.title = stage === "case" ? "市政档案中心｜17:42" : "观察者登记｜16";
   }, [stage]);
@@ -916,8 +933,25 @@ export default function Home() {
     if (object === "phone") setPhoneStep("idle");
     if (object === "roomEvidence:routing-slip") {
       setRoutingSlipSide("front");
+      setRoutingSlipFrame(0);
+      setRoutingSlipAnimating(false);
       setEvidenceCluesSeen((current) => ({ ...current, "routing-slip": ["front"] }));
     }
+  };
+  const turnRoutingSlip = async () => {
+    if (routingSlipAnimating) return;
+    const next = routingSlipSide === "front" ? "back" : "front";
+    const frames = next === "back"
+      ? ROUTING_SLIP_FRAMES.map((_, index) => index)
+      : ROUTING_SLIP_FRAMES.map((_, index) => ROUTING_SLIP_FRAMES.length - 1 - index);
+    setRoutingSlipAnimating(true);
+    for (const frame of frames.slice(1)) {
+      await new Promise((resolve) => window.setTimeout(resolve, 115));
+      setRoutingSlipFrame(frame);
+    }
+    setRoutingSlipSide(next);
+    setRoutingSlipAnimating(false);
+    if (next === "back") setEvidenceCluesSeen((current) => ({ ...current, "routing-slip": ["front", "back"] }));
   };
   const beginSceneDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!window.matchMedia("(max-width: 620px)").matches) return;
@@ -1857,9 +1891,9 @@ export default function Home() {
                   {activeRoomEvidence.image && (
                     <figure className="room-evidence-photo">
                       <img
-                        key={activeRoomEvidence.id === "routing-slip" ? routingSlipSide : activeRoomEvidence.image}
-                        className={activeRoomEvidence.id === "routing-slip" ? "paper-frame" : ""}
-                        src={asset(activeRoomEvidence.id === "routing-slip" ? `evidence/fax-routing-slip-${routingSlipSide}-v4.jpg` : activeRoomEvidence.image)}
+                        key={activeRoomEvidence.image}
+                        className={activeRoomEvidence.id === "routing-slip" ? `paper-frame ${routingSlipAnimating ? "turning" : ""}` : ""}
+                        src={asset(activeRoomEvidence.id === "routing-slip" ? ROUTING_SLIP_FRAMES[routingSlipFrame] : activeRoomEvidence.image)}
                         alt={activeRoomEvidence.imageAlt || activeRoomEvidence.label}
                       />
                       {activeRoomEvidence.id === "routing-slip" && (
@@ -1867,13 +1901,10 @@ export default function Home() {
                           <button
                             className={`physical-paper routing-slip-paper ${routingSlipSide}`}
                             aria-label={routingSlipSide === "front" ? "翻到分送签条背面" : "翻回分送签条正面"}
-                            onClick={() => {
-                              const next = routingSlipSide === "front" ? "back" : "front";
-                              setRoutingSlipSide(next);
-                              if (next === "back") setEvidenceCluesSeen((current) => ({ ...current, "routing-slip": ["front", "back"] }));
-                            }}
+                            disabled={routingSlipAnimating}
+                            onClick={turnRoutingSlip}
                           >
-                            <small>{routingSlipSide === "front" ? "点击纸张，翻到背面" : "点击纸张，翻回正面"}</small>
+                            <small>{routingSlipAnimating ? "翻动中……" : routingSlipSide === "front" ? "点击纸张，翻到背面" : "点击纸张，翻回正面"}</small>
                           </button>
                         </>
                       )}
