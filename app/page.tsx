@@ -1859,7 +1859,7 @@ export default function Home() {
                       <img
                         key={activeRoomEvidence.id === "routing-slip" ? routingSlipSide : activeRoomEvidence.image}
                         className={activeRoomEvidence.id === "routing-slip" ? "paper-frame" : ""}
-                        src={asset(activeRoomEvidence.id === "routing-slip" ? `evidence/fax-routing-slip-${routingSlipSide}-v2.jpg` : activeRoomEvidence.image)}
+                        src={asset(activeRoomEvidence.id === "routing-slip" ? `evidence/fax-routing-slip-${routingSlipSide}-v3.jpg` : activeRoomEvidence.image)}
                         alt={activeRoomEvidence.imageAlt || activeRoomEvidence.label}
                       />
                       {activeRoomEvidence.id === "routing-slip" && (
@@ -1873,13 +1873,6 @@ export default function Home() {
                               if (next === "back") setEvidenceCluesSeen((current) => ({ ...current, "routing-slip": ["front", "back"] }));
                             }}
                           >
-                            <span className="paper-print">
-                              {routingSlipSide === "front" ? (
-                                <><b>传真材料分送签条</b><i>办件编号　HS-0416-273</i><i>接收时间　04/14　09:26</i><i>页　　数　4 页</i><i>代 收 人　陈国平</i><strong>登记编号　＿＿＿＿＿＿</strong></>
-                              ) : (
-                                <><b>背面手记</b><em>先放。</em><em>等床位表。</em><i>09:31</i></>
-                              )}
-                            </span>
                             <small>{routingSlipSide === "front" ? "点击纸张，翻到背面" : "点击纸张，翻回正面"}</small>
                           </button>
                         </>
