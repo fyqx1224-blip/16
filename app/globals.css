@@ -1407,6 +1407,16 @@ html .photo-space .awakened .eye.right {
   object-fit: cover;
   object-position: center;
 }
+.scene-loading > .scene-image { opacity: 0; }
+.scene-loading > .hotspot {
+  opacity: 0;
+  pointer-events: none;
+}
+.scene-ready > .scene-image { animation: room-image-arrive .18s ease-out both; }
+@keyframes room-image-arrive {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 .scene-vignette {
   position: absolute;
   inset: 0;

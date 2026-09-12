@@ -760,6 +760,7 @@ export default function Home() {
   const [cognitivePulse, setCognitivePulse] = useState("");
   const [caseFocus, setCaseFocus] = useState("");
   const [caseRoom, setCaseRoom] = useState<CaseRoom>(directBranch ? "corridor" : "lin");
+  const [sceneImageReady, setSceneImageReady] = useState(true);
   const [scenePan, setScenePan] = useState({ x: 0, y: 0 });
   const [sceneAspect, setSceneAspect] = useState(16 / 9);
   const sceneDrag = useRef({ active: false, moved: false, startX: 0, startY: 0, originX: 0, originY: 0 });
@@ -779,7 +780,7 @@ export default function Home() {
   const voicemail = useRef<HTMLAudioElement>(null);
   const sound = useRef<{ ctx: AudioContext; master: GainNode } | null>(null);
   useEffect(() => {
-    ROUTING_SLIP_FRAMES.forEach((frame) => {
+    [...ROUTING_SLIP_FRAMES, ...Object.values(roomScenes)].forEach((frame) => {
       const image = new Image();
       image.src = asset(frame);
     });
@@ -988,6 +989,10 @@ export default function Home() {
   const runSceneAction = (action: () => void) => {
     if (!suppressSceneClick.current) action();
   };
+  const goToRoom = (room: CaseRoom) => {
+    setSceneImageReady(false);
+    setCaseRoom(room);
+  };
   useEffect(() => setScenePan({ x: 0, y: 0 }), [caseRoom]);
   useEffect(() => {
     if (caseFocus !== "monitor" || !window.matchMedia("(max-width: 620px)").matches) return;
@@ -1097,7 +1102,7 @@ export default function Home() {
     setOfficeDoorUnlocked(true);
     window.setTimeout(() => {
       setCaseFocus("");
-      setCaseRoom("lin");
+      goToRoom("lin");
     }, 850);
   };
   const powerCrt = () => {
@@ -1134,7 +1139,7 @@ export default function Home() {
             if (key === "enter") {
               setCaseFollowupDecision(choices[crtSelection % choices.length].id);
               setCaseBranchStep(5);
-              setCaseRoom("lin");
+              goToRoom("lin");
               setCaseFocus("monitor");
             }
           } else if (key === "enter") setCaseFocus("");
@@ -1638,7 +1643,7 @@ export default function Home() {
             onEnded={finishVoicemail}
           />
           <div
-            className="scene-pan-layer"
+            className={`scene-pan-layer ${sceneImageReady ? "scene-ready" : "scene-loading"}`}
             style={{ "--scene-pan-x": `${scenePan.x}px`, "--scene-pan-y": `${scenePan.y}px`, "--scene-aspect": sceneAspect } as CSSProperties}
             onPointerDown={beginSceneDrag}
             onPointerMove={moveSceneDrag}
@@ -1646,11 +1651,15 @@ export default function Home() {
             onPointerCancel={endSceneDrag}
           >
             <img
+              key={caseRoom}
               className="scene-image"
               src={asset(roomScenes[caseRoom])}
               alt={caseRoom === "lin" ? "17:42 的市政档案办公室" : caseRoom === "corridor" ? "档案中心走廊" : caseRoom === "fax" ? "公共传真室" : caseRoom === "chen" ? "陈国平办公室" : branchSpace?.place || "档案中心内部空间"}
               draggable={false}
-              onLoad={(event) => setSceneAspect(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight)}
+              onLoad={(event) => {
+                setSceneAspect(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight);
+                setSceneImageReady(true);
+              }}
             />
             <div className="scene-vignette" />
           <button
@@ -1690,7 +1699,7 @@ export default function Home() {
           </button>
           {caseRoom === "lin" && officeDoorUnlocked && (
             <>
-              <button className="hotspot exit-door" onClick={() => runSceneAction(() => setCaseRoom("corridor"))}>
+              <button className="hotspot exit-door" onClick={() => runSceneAction(() => goToRoom("corridor"))}>
                 <span>走廊</span>
               </button>
               {notebookReady && (
@@ -1704,19 +1713,19 @@ export default function Home() {
             <>
               {caseDecision === "transfer" ? (
                 <>
-                  <button className="hotspot chen-door" onClick={() => runSceneAction(() => setCaseRoom("chen"))}>
+                  <button className="hotspot chen-door" onClick={() => runSceneAction(() => goToRoom("chen"))}>
                     <span>复核办公室　陈国平</span>
                   </button>
-                  <button className="hotspot fax-door" onClick={() => runSceneAction(() => setCaseRoom("fax"))}>
+                  <button className="hotspot fax-door" onClick={() => runSceneAction(() => goToRoom("fax"))}>
                     <span>公共传真室</span>
                   </button>
                 </>
               ) : (
-                <button className="hotspot chen-door" onClick={() => runSceneAction(() => setCaseRoom(branchSpace?.room || "chen"))}>
+                <button className="hotspot chen-door" onClick={() => runSceneAction(() => goToRoom(branchSpace?.room || "chen"))}>
                   <span>{branchSpace?.place || "半开的办公室"}</span>
                 </button>
               )}
-              <button className="hotspot corridor-back" onClick={() => runSceneAction(() => setCaseRoom("lin"))}>
+              <button className="hotspot corridor-back" onClick={() => runSceneAction(() => goToRoom("lin"))}>
                 <span>返回我的工位</span>
               </button>
             </>
@@ -1728,7 +1737,7 @@ export default function Home() {
                   <span>{branchEvidenceSeen.includes(item.id) ? `已核对／${item.label}` : item.label}</span>
                 </button>
               ))}
-              <button className="hotspot chen-back" onClick={() => runSceneAction(() => setCaseRoom("corridor"))}>
+              <button className="hotspot chen-back" onClick={() => runSceneAction(() => goToRoom("corridor"))}>
                 <span>退回走廊</span>
               </button>
             </>
@@ -1755,7 +1764,7 @@ export default function Home() {
           {roomEvidenceComplete && caseRoom !== "lin" && caseRoom !== "corridor" && (
             <button className="scene-investigation-action" onClick={() => {
               if (caseDecision === "transfer") {
-                setCaseRoom("lin");
+                goToRoom("lin");
                 setCaseFocus("");
               } else {
                 setCrtSelection(0);
@@ -2013,7 +2022,7 @@ export default function Home() {
                         onClick={() => {
                           setCaseFollowupDecision(choice.id);
                           setCaseBranchStep(5);
-                          setCaseRoom("lin");
+                          goToRoom("lin");
                           setCaseFocus("monitor");
                         }}
                       >
