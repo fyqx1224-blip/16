@@ -674,12 +674,12 @@ const branchSpaces: Record<
 };
 const roomScenes: Record<CaseRoom, string> = {
   lin: "scenes/istj-office-notebook.webp",
-  corridor: "scenes/archive-corridor-1750.png",
+  corridor: "scenes/archive-corridor-1750.webp",
   chen: "scenes/chen-office-1804.webp",
-  fax: "scenes/fax-room-1752.png",
-  supervisor: "scenes/supervisor-office-1908.png",
-  intake: "scenes/materials-intake-2338.png",
-  backup: "scenes/cold-backup-room-1812.png",
+  fax: "scenes/fax-room-1752.webp",
+  supervisor: "scenes/supervisor-office-1908.webp",
+  intake: "scenes/materials-intake-2338.webp",
+  backup: "scenes/cold-backup-room-1812.webp",
 };
 
 type EvidenceClue = { id: string; label: string; detail: string; x: number; y: number; w: number; h: number };
