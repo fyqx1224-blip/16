@@ -728,7 +728,9 @@ export default function Home() {
   ).toUpperCase();
   const directType = Object.hasOwn(stacks, requestedType) ? requestedType : "";
   const requestedGender = previewParams.get("gender");
-  const directScene = previewParams.get("scene") === "istj-1742";
+  const requestedBranch = previewParams.get("branch") || "";
+  const directBranch = Object.hasOwn(caseDecisions, requestedBranch) ? requestedBranch : "";
+  const directScene = previewParams.get("scene") === "istj-1742" || Boolean(directBranch);
   const [stage, setStage] = useState<Stage>(directScene ? "case" : directType ? "reveal" : "boot");
   const [gender, setGender] = useState<Gender>(requestedGender === "male" ? "male" : "female");
   const [index, setIndex] = useState(0);
@@ -744,9 +746,9 @@ export default function Home() {
   const [ambientSignal, setAmbientSignal] = useState("");
   const [memoryRecovered, setMemoryRecovered] = useState(false);
   const [recalled, setRecalled] = useState<string[]>([]);
-  const [caseEvidence, setCaseEvidence] = useState<string[]>([]);
-  const [caseDecision, setCaseDecision] = useState("");
-  const [caseBranchStep, setCaseBranchStep] = useState(0);
+  const [caseEvidence, setCaseEvidence] = useState<string[]>(directBranch ? ["family", "income", "residence", "time"] : []);
+  const [caseDecision, setCaseDecision] = useState(directBranch);
+  const [caseBranchStep, setCaseBranchStep] = useState(directBranch ? 4 : 0);
   const [caseFollowupDecision, setCaseFollowupDecision] = useState("");
   const [branchEvidenceSeen, setBranchEvidenceSeen] = useState<string[]>([]);
   const [evidenceCluesSeen, setEvidenceCluesSeen] = useState<Record<string, string[]>>({});
@@ -757,13 +759,13 @@ export default function Home() {
   const [inferenceComplete, setInferenceComplete] = useState(false);
   const [cognitivePulse, setCognitivePulse] = useState("");
   const [caseFocus, setCaseFocus] = useState("");
-  const [caseRoom, setCaseRoom] = useState<CaseRoom>("lin");
+  const [caseRoom, setCaseRoom] = useState<CaseRoom>(directBranch ? "corridor" : "lin");
   const [scenePan, setScenePan] = useState({ x: 0, y: 0 });
   const [sceneAspect, setSceneAspect] = useState(16 / 9);
   const sceneDrag = useRef({ active: false, moved: false, startX: 0, startY: 0, originX: 0, originY: 0 });
   const suppressSceneClick = useRef(false);
   const caseModalRef = useRef<HTMLDivElement>(null);
-  const [officeDoorUnlocked, setOfficeDoorUnlocked] = useState(false);
+  const [officeDoorUnlocked, setOfficeDoorUnlocked] = useState(Boolean(directBranch));
   const [phoneStep, setPhoneStep] = useState<"idle" | "mailbox" | "selected" | "playing">("idle");
   const [voicemailHeard, setVoicemailHeard] = useState(false);
   const [pressedPhoneKey, setPressedPhoneKey] = useState("");
@@ -783,8 +785,12 @@ export default function Home() {
     });
   }, []);
   useEffect(() => {
-    document.title = stage === "case" ? "市政档案中心｜17:42" : "观察者登记｜16";
-  }, [stage]);
+    document.title = directBranch
+      ? `${caseDecisions[directBranch].title}｜走廊调查`
+      : stage === "case"
+        ? "市政档案中心｜17:42"
+        : "观察者登记｜16";
+  }, [stage, directBranch]);
   useEffect(() => {
     const signal =
       ambientSignal || (stage === "assessment" && sideSignals[index] ? String(index) : "");
