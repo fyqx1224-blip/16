@@ -31,6 +31,18 @@ const ROUTING_SLIP_FRAMES = [
   "evidence/fax-routing-slip-flip-05-v2.jpg",
   "evidence/fax-routing-slip-back-v4.jpg",
 ] as const;
+const FAX_EVIDENCE_IMAGES = {
+  standby: "evidence/fax-machine-standby-v1.webp",
+  menu: "evidence/fax-machine-menu-v1.webp",
+  rxMenu: "evidence/fax-machine-rx-menu-v1.webp",
+  count: "evidence/fax-machine-rx-count-v1.webp",
+  print1: "evidence/fax-machine-print-01-v1.webp",
+  print2: "evidence/fax-machine-print-02-v1.webp",
+  report: "evidence/fax-machine-report-v1.webp",
+  ledger: "evidence/fax-ledger-v1.webp",
+  compare: "evidence/fax-counter-comparison-v1.webp",
+} as const;
+type FaxEvidenceStep = keyof typeof FAX_EVIDENCE_IMAGES;
 const stacks: Record<string, FunctionKey[]> = {
   ISTJ: ["Si", "Te", "Fi", "Ne"],
   ISFJ: ["Si", "Fe", "Ti", "Ne"],
@@ -694,7 +706,7 @@ const branchRoomEvidence: Record<string, BranchEvidenceItem[]> = {
       { id: "front", label: "翻看签条正面", detail: "HS-0416-273　代收：陈国平　登记号：＿＿＿＿", x: 40, y: 34, w: 23, h: 27 },
       { id: "back", label: "检查背面铅笔字", detail: "“先放。等床位表。”　落笔时间约 09:31", x: 48, y: 50, w: 21, h: 22 },
     ] },
-    { id: "page-counter", label: "设备计数器", source: "传真机维护菜单", time: "17:51", image: "evidence/fax-device-counter.jpg", imageAlt: "旧传真机维护菜单中的设备累计计数", body: "维护菜单的计数不可由普通经办员修改；归档台账却只统计已经取得登记号的传真。", finding: "设备实收 3724 页，台账只登记 3720 页；唯一缺口正是 HS-0416-273 的四页。", clues: [
+    { id: "page-counter", label: "设备计数器", source: "传真机与纸质归档簿", time: "17:53", image: "evidence/fax-machine-standby-v1.webp", imageAlt: "传真室内的旧传真机实景", body: "液晶屏上的数字会随下一次收件变化，不能直接装入案卷。我需要从维护菜单读取累计数，打印带设备号、时间和校验码的报告，再与纸质归档簿核对。", finding: "FAX-02 于 17:53 打印的维护报告为 003724；纸质归档簿同一时点为 003720。四页差额与 HS-0416-273 的页数完全一致。", clues: [
       { id: "machine", label: "读取设备累计数", detail: "接收累计：003724 页", x: 44, y: 38, w: 21, h: 12 },
       { id: "ledger", label: "对照纸质台账", detail: "归档累计：003720 页　差额：+4", x: 28, y: 78, w: 35, h: 13 },
     ] },
@@ -770,6 +782,8 @@ export default function Home() {
   const [phoneStep, setPhoneStep] = useState<"idle" | "mailbox" | "selected" | "playing">("idle");
   const [voicemailHeard, setVoicemailHeard] = useState(false);
   const [pressedPhoneKey, setPressedPhoneKey] = useState("");
+  const [faxEvidenceStep, setFaxEvidenceStep] = useState<FaxEvidenceStep>("standby");
+  const [faxPrinting, setFaxPrinting] = useState(false);
   const [crtState, setCrtState] = useState<"off" | "boot" | "login" | "ready">("off");
   const [crtPassword, setCrtPassword] = useState("");
   const [crtLoginError, setCrtLoginError] = useState("");
@@ -780,7 +794,7 @@ export default function Home() {
   const voicemail = useRef<HTMLAudioElement>(null);
   const sound = useRef<{ ctx: AudioContext; master: GainNode } | null>(null);
   useEffect(() => {
-    [...ROUTING_SLIP_FRAMES, ...Object.values(roomScenes)].forEach((frame) => {
+    [...ROUTING_SLIP_FRAMES, ...Object.values(FAX_EVIDENCE_IMAGES), ...Object.values(roomScenes)].forEach((frame) => {
       const image = new Image();
       image.src = asset(frame);
     });
@@ -944,6 +958,59 @@ export default function Home() {
       setRoutingSlipAnimating(false);
       setEvidenceCluesSeen((current) => ({ ...current, "routing-slip": ["front"] }));
     }
+    if (object === "roomEvidence:page-counter") {
+      setFaxEvidenceStep("standby");
+      setFaxPrinting(false);
+    }
+  };
+  const markFaxClue = (clue: "machine" | "ledger") => {
+    setEvidenceCluesSeen((current) => ({
+      ...current,
+      "page-counter": (current["page-counter"] || []).includes(clue)
+        ? current["page-counter"] || []
+        : [...(current["page-counter"] || []), clue],
+    }));
+  };
+  const playFaxPrintSound = () => {
+    startSound();
+    const audio = sound.current;
+    if (!audio || muted) return;
+    const { ctx, master } = audio;
+    const motor = ctx.createOscillator();
+    const motorGain = ctx.createGain();
+    motor.type = "sawtooth";
+    motor.frequency.setValueAtTime(58, ctx.currentTime);
+    motor.frequency.linearRampToValueAtTime(43, ctx.currentTime + 1.55);
+    motorGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    motorGain.gain.exponentialRampToValueAtTime(0.035, ctx.currentTime + 0.05);
+    motorGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.65);
+    motor.connect(motorGain).connect(master);
+    motor.start();
+    motor.stop(ctx.currentTime + 1.7);
+    for (let i = 0; i < 13; i += 1) {
+      const tick = ctx.createOscillator();
+      const tickGain = ctx.createGain();
+      const at = ctx.currentTime + 0.12 + i * 0.105;
+      tick.type = "square";
+      tick.frequency.value = i % 2 ? 116 : 92;
+      tickGain.gain.setValueAtTime(0.0001, at);
+      tickGain.gain.exponentialRampToValueAtTime(0.025, at + 0.008);
+      tickGain.gain.exponentialRampToValueAtTime(0.0001, at + 0.055);
+      tick.connect(tickGain).connect(master);
+      tick.start(at);
+      tick.stop(at + 0.06);
+    }
+  };
+  const printFaxReport = () => {
+    if (faxPrinting) return;
+    playFaxPrintSound();
+    setFaxPrinting(true);
+    setFaxEvidenceStep("print1");
+    window.setTimeout(() => setFaxEvidenceStep("print2"), 520);
+    window.setTimeout(() => {
+      setFaxEvidenceStep("report");
+      setFaxPrinting(false);
+    }, 1280);
   };
   const turnRoutingSlip = async () => {
     if (routingSlipAnimating) return;
@@ -1906,9 +1973,9 @@ export default function Home() {
                   {activeRoomEvidence.image && (
                     <figure className="room-evidence-photo">
                       <img
-                        key={activeRoomEvidence.image}
-                        className={activeRoomEvidence.id === "routing-slip" ? `paper-frame ${routingSlipAnimating ? "turning" : ""}` : ""}
-                        src={asset(activeRoomEvidence.id === "routing-slip" ? ROUTING_SLIP_FRAMES[routingSlipFrame] : activeRoomEvidence.image)}
+                        key={activeRoomEvidence.id === "page-counter" ? faxEvidenceStep : activeRoomEvidence.image}
+                        className={activeRoomEvidence.id === "routing-slip" ? `paper-frame ${routingSlipAnimating ? "turning" : ""}` : activeRoomEvidence.id === "page-counter" ? "fax-evidence-frame" : ""}
+                        src={asset(activeRoomEvidence.id === "routing-slip" ? ROUTING_SLIP_FRAMES[routingSlipFrame] : activeRoomEvidence.id === "page-counter" ? FAX_EVIDENCE_IMAGES[faxEvidenceStep] : activeRoomEvidence.image)}
                         alt={activeRoomEvidence.imageAlt || activeRoomEvidence.label}
                       />
                       {activeRoomEvidence.id === "routing-slip" && (
@@ -1931,7 +1998,17 @@ export default function Home() {
                           <div className="audit-row alert"><span>18:02:07</span><span>陈国平接件</span><span>超过补正期限</span><span>18s</span><span>0/4</span></div>
                         </div>
                       )}
-                      {activeRoomEvidence.id !== "routing-slip" && activeRoomEvidence.clues?.map((clue, clueIndex) => {
+                      {activeRoomEvidence.id === "page-counter" && (
+                        <div className={`fax-evidence-controls fax-step-${faxEvidenceStep}`}>
+                          {faxEvidenceStep === "standby" && <button className="fax-physical-key fax-menu-key" onClick={() => setFaxEvidenceStep("menu")} aria-label="按传真机菜单键"><span>按菜单键</span></button>}
+                          {faxEvidenceStep === "menu" && <button className="fax-physical-key fax-down-key" onClick={() => setFaxEvidenceStep("rxMenu")} aria-label="用方向键选择接收统计"><span>选择接收统计</span></button>}
+                          {faxEvidenceStep === "rxMenu" && <button className="fax-physical-key fax-enter-key" onClick={() => { setFaxEvidenceStep("count"); markFaxClue("machine"); }} aria-label="按回车读取历史接收累计数"><span>读取累计数</span></button>}
+                          {faxEvidenceStep === "count" && <button className="fax-physical-key fax-print-key" onClick={printFaxReport} aria-label="按绿色启动键打印维护报告"><span>打印维护报告</span></button>}
+                          {faxEvidenceStep === "report" && <button className="fax-paper-action" onClick={() => setFaxEvidenceStep("ledger")} aria-label="拿起维护报告并查看纸质台账"><span>拿起报告，对照台账</span></button>}
+                          {faxEvidenceStep === "ledger" && <button className="fax-ledger-action" onClick={() => { markFaxClue("ledger"); setFaxEvidenceStep("compare"); }} aria-label="核对纸质归档累计数"><span>核对登记累计数</span></button>}
+                        </div>
+                      )}
+                      {activeRoomEvidence.id !== "routing-slip" && activeRoomEvidence.id !== "page-counter" && activeRoomEvidence.clues?.map((clue, clueIndex) => {
                         const discovered = activeCluesSeen.includes(clue.id);
                         return (
                           <button
