@@ -9,7 +9,7 @@ EVIDENCE = ROOT / "public" / "evidence"
 NORMAL = {
     "standby": "fax-machine-standby-v1.webp",
     "device": "fax-machine-device-info-v1.webp",
-    "rx": "fax-machine-rx-menu-v1.webp",
+    "rx": "fax-machine-rx-menu-v2.webp",
     "count": "fax-machine-rx-count-v1.webp",
     "tx": "fax-machine-tx-menu-v1.webp",
     "error": "fax-machine-error-menu-v1.webp",
@@ -46,6 +46,17 @@ def composite_key(base_name: str, pressed_name: str, box: tuple[int, int, int, i
     mask = mask.filter(ImageFilter.GaussianBlur(4))
     base.paste(crop, box[:2], mask)
     return base
+
+
+# The original RX menu render accidentally baked the down key into a depressed
+# pose. Restore its released pose from the identical device-info camera frame
+# before deriving any RX press-travel frames.
+released_rx = composite_key(
+    "fax-machine-rx-menu-v1.webp",
+    "fax-machine-device-info-v1.webp",
+    PRESSED["down"][2],
+)
+released_rx.save(EVIDENCE / NORMAL["rx"], "WEBP", quality=82, method=6)
 
 
 for output_stem, (state, key) in FRAMES.items():

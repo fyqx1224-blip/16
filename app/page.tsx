@@ -36,7 +36,7 @@ const FAX_EVIDENCE_IMAGES = {
   menuPressed: "evidence/fax-machine-menu-pressed-v1.webp",
   deviceInfo: "evidence/fax-machine-device-info-v1.webp",
   downPressed: "evidence/fax-machine-down-pressed-v1.webp",
-  rxMenu: "evidence/fax-machine-rx-menu-v1.webp",
+  rxMenu: "evidence/fax-machine-rx-menu-v2.webp",
   enterPressed: "evidence/fax-machine-enter-pressed-v1.webp",
   count: "evidence/fax-machine-rx-count-v1.webp",
   txMenu: "evidence/fax-machine-tx-menu-v1.webp",
