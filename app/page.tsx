@@ -50,24 +50,28 @@ const FAX_EVIDENCE_IMAGES = {
   compare: "evidence/fax-counter-comparison-v1.webp",
 } as const;
 type FaxEvidenceStep = keyof typeof FAX_EVIDENCE_IMAGES;
-const FAX_PRESSED_IMAGES: Record<string, string> = {
-  "standby:menu": "evidence/fax-standby-menu-pressed-v1.webp",
-  "deviceInfo:menu": "evidence/fax-device-menu-pressed-v1.webp",
-  "rxMenu:menu": "evidence/fax-rx-menu-pressed-v1.webp",
-  "count:menu": "evidence/fax-count-menu-pressed-v1.webp",
-  "txMenu:menu": "evidence/fax-tx-menu-pressed-v1.webp",
-  "errorMenu:menu": "evidence/fax-error-menu-pressed-v1.webp",
-  "printMenu:menu": "evidence/fax-print-menu-pressed-v1.webp",
-  "printConfirm:menu": "evidence/fax-confirm-menu-pressed-v1.webp",
-  "deviceInfo:down": "evidence/fax-device-down-pressed-v1.webp",
-  "rxMenu:down": "evidence/fax-rx-down-pressed-v1.webp",
-  "txMenu:down": "evidence/fax-tx-down-pressed-v1.webp",
-  "errorMenu:down": "evidence/fax-error-down-pressed-v1.webp",
-  "printMenu:down": "evidence/fax-print-down-pressed-v1.webp",
-  "rxMenu:enter": "evidence/fax-rx-enter-pressed-v1.webp",
-  "count:enter": "evidence/fax-count-enter-pressed-v1.webp",
-  "printMenu:enter": "evidence/fax-print-enter-pressed-v1.webp",
-  "printConfirm:green": "evidence/fax-confirm-green-pressed-v1.webp",
+const pressTravel = (state: string, key: string) => [
+  `evidence/fax-${state}-${key}-half-v2.webp`,
+  `evidence/fax-${state}-${key}-full-v2.webp`,
+] as const;
+const FAX_PRESSED_IMAGES: Record<string, readonly [string, string]> = {
+  "standby:menu": pressTravel("standby", "menu"),
+  "deviceInfo:menu": pressTravel("device", "menu"),
+  "rxMenu:menu": pressTravel("rx", "menu"),
+  "count:menu": pressTravel("count", "menu"),
+  "txMenu:menu": pressTravel("tx", "menu"),
+  "errorMenu:menu": pressTravel("error", "menu"),
+  "printMenu:menu": pressTravel("print", "menu"),
+  "printConfirm:menu": pressTravel("confirm", "menu"),
+  "deviceInfo:down": pressTravel("device", "down"),
+  "rxMenu:down": pressTravel("rx", "down"),
+  "txMenu:down": pressTravel("tx", "down"),
+  "errorMenu:down": pressTravel("error", "down"),
+  "printMenu:down": pressTravel("print", "down"),
+  "rxMenu:enter": pressTravel("rx", "enter"),
+  "count:enter": pressTravel("count", "enter"),
+  "printMenu:enter": pressTravel("print", "enter"),
+  "printConfirm:green": pressTravel("confirm", "green"),
 };
 const stacks: Record<string, FunctionKey[]> = {
   ISTJ: ["Si", "Te", "Fi", "Ne"],
@@ -812,6 +816,7 @@ export default function Home() {
   const [faxPrinting, setFaxPrinting] = useState(false);
   const [faxTransitioning, setFaxTransitioning] = useState(false);
   const [faxPressedImage, setFaxPressedImage] = useState("");
+  const [faxFramesReady, setFaxFramesReady] = useState(false);
   const [crtState, setCrtState] = useState<"off" | "boot" | "login" | "ready">("off");
   const [crtPassword, setCrtPassword] = useState("");
   const [crtLoginError, setCrtLoginError] = useState("");
@@ -822,10 +827,17 @@ export default function Home() {
   const voicemail = useRef<HTMLAudioElement>(null);
   const sound = useRef<{ ctx: AudioContext; master: GainNode } | null>(null);
   useEffect(() => {
-    [...ROUTING_SLIP_FRAMES, ...Object.values(FAX_EVIDENCE_IMAGES), ...Object.values(FAX_PRESSED_IMAGES), ...Object.values(roomScenes)].forEach((frame) => {
+    const faxFrames = [...Object.values(FAX_EVIDENCE_IMAGES), ...Object.values(FAX_PRESSED_IMAGES).flat()];
+    let cancelled = false;
+    const loads = [...ROUTING_SLIP_FRAMES, ...faxFrames, ...Object.values(roomScenes)].map((frame) => new Promise<void>((resolve) => {
       const image = new Image();
+      image.decoding = "async";
+      image.onload = () => { void image.decode().catch(() => undefined).finally(resolve); };
+      image.onerror = () => resolve();
       image.src = asset(frame);
-    });
+    }));
+    void Promise.all(loads).then(() => { if (!cancelled) setFaxFramesReady(true); });
+    return () => { cancelled = true; };
   }, []);
   useEffect(() => {
     document.title = directBranch
@@ -994,15 +1006,19 @@ export default function Home() {
     }
   };
   const pressFaxKey = (key: "menu" | "down" | "enter", next: FaxEvidenceStep, after?: () => void) => {
-    if (faxTransitioning) return;
+    if (faxTransitioning || !faxFramesReady) return;
+    const frames = FAX_PRESSED_IMAGES[`${faxEvidenceStep}:${key}`];
+    if (!frames) return;
     setFaxTransitioning(true);
-    setFaxPressedImage(FAX_PRESSED_IMAGES[`${faxEvidenceStep}:${key}`] || "");
+    setFaxPressedImage(frames[0]);
+    window.setTimeout(() => setFaxPressedImage(frames[1]), 88);
+    window.setTimeout(() => setFaxPressedImage(frames[0]), 176);
     window.setTimeout(() => {
       setFaxEvidenceStep(next);
       setFaxPressedImage("");
       setFaxTransitioning(false);
       after?.();
-    }, 420);
+    }, 268);
   };
   const nextFaxMenu: Partial<Record<FaxEvidenceStep, FaxEvidenceStep>> = {
     deviceInfo: "rxMenu",
@@ -1061,14 +1077,17 @@ export default function Home() {
     }, 1280);
   };
   const confirmFaxPrint = () => {
-    if (faxTransitioning || faxPrinting) return;
+    if (faxTransitioning || faxPrinting || !faxFramesReady) return;
+    const frames = FAX_PRESSED_IMAGES["printConfirm:green"];
     setFaxTransitioning(true);
-    setFaxPressedImage(FAX_PRESSED_IMAGES["printConfirm:green"]);
+    setFaxPressedImage(frames[0]);
+    window.setTimeout(() => setFaxPressedImage(frames[1]), 88);
+    window.setTimeout(() => setFaxPressedImage(frames[0]), 176);
     window.setTimeout(() => {
       setFaxPressedImage("");
       setFaxTransitioning(false);
       printFaxReport();
-    }, 420);
+    }, 268);
   };
   const turnRoutingSlip = async () => {
     if (routingSlipAnimating) return;
@@ -2031,7 +2050,8 @@ export default function Home() {
                   {activeRoomEvidence.image && (
                     <figure className="room-evidence-photo">
                       <img
-                        key={activeRoomEvidence.id === "page-counter" ? `${faxEvidenceStep}:${faxPressedImage}` : activeRoomEvidence.image}
+                        key={activeRoomEvidence.id}
+                        decoding={activeRoomEvidence.id === "page-counter" ? "sync" : "async"}
                         className={activeRoomEvidence.id === "routing-slip" ? `paper-frame ${routingSlipAnimating ? "turning" : ""}` : activeRoomEvidence.id === "page-counter" ? "fax-evidence-frame" : ""}
                         src={asset(activeRoomEvidence.id === "routing-slip" ? ROUTING_SLIP_FRAMES[routingSlipFrame] : activeRoomEvidence.id === "page-counter" ? faxPressedImage || FAX_EVIDENCE_IMAGES[faxEvidenceStep] : activeRoomEvidence.image)}
                         alt={activeRoomEvidence.imageAlt || activeRoomEvidence.label}
@@ -2057,7 +2077,7 @@ export default function Home() {
                         </div>
                       )}
                       {activeRoomEvidence.id === "page-counter" && (
-                        <div className={`fax-evidence-controls fax-step-${faxEvidenceStep}`}>
+                        <div className={`fax-evidence-controls fax-step-${faxEvidenceStep} ${faxFramesReady ? "ready" : "loading"}`}>
                           {faxEvidenceStep === "standby" && <button className="fax-physical-key fax-menu-key" onClick={() => pressFaxKey("menu", "deviceInfo")} aria-label="按传真机菜单键"><span>进入维护菜单</span></button>}
                           {nextFaxMenu[faxEvidenceStep] && <button className="fax-physical-key fax-down-key" onClick={() => pressFaxKey("down", nextFaxMenu[faxEvidenceStep]!)} aria-label="按下方向键切换维护项目"><span>下一项</span></button>}
                           {faxEvidenceStep === "rxMenu" && <button className="fax-physical-key fax-enter-key" onClick={() => pressFaxKey("enter", "count", () => markFaxClue("machine"))} aria-label="按回车读取历史接收累计数"><span>读取累计数</span></button>}

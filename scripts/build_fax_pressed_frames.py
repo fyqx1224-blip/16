@@ -18,10 +18,10 @@ NORMAL = {
 }
 
 PRESSED = {
-    "menu": ("fax-machine-menu-pressed-v1.webp", (1090, 438, 1225, 532)),
-    "down": ("fax-machine-down-pressed-v1.webp", (638, 494, 780, 590)),
-    "enter": ("fax-machine-enter-pressed-v1.webp", (766, 506, 912, 610)),
-    "green": ("fax-machine-print-01-v1.webp", (930, 582, 1138, 770)),
+    "menu": (None, "fax-machine-menu-pressed-v1.webp", (1150, 458, 1305, 558)),
+    "down": ("fax-machine-down-half-source-v2.webp", "fax-machine-down-full-source-v2.webp", (700, 490, 855, 595)),
+    "enter": (None, "fax-machine-enter-pressed-v1.webp", (825, 510, 970, 620)),
+    "green": (None, "fax-machine-print-01-v1.webp", (1050, 610, 1250, 790)),
 }
 
 FRAMES = {
@@ -32,10 +32,13 @@ FRAMES = {
 }
 
 
-def composite_key(base_name: str, pressed_name: str, box: tuple[int, int, int, int]) -> Image.Image:
+def composite_key(base_name: str, pressed_name: str, box: tuple[int, int, int, int], amount: float = 1) -> Image.Image:
     base = Image.open(EVIDENCE / base_name).convert("RGB")
     pressed = Image.open(EVIDENCE / pressed_name).convert("RGB")
+    original = base.crop(box)
     crop = pressed.crop(box)
+    if amount < 1:
+        crop = Image.blend(original, crop, amount)
     width, height = box[2] - box[0], box[3] - box[1]
     mask = Image.new("L", (width, height), 0)
     inner = Image.new("L", (max(1, width - 12), max(1, height - 12)), 255)
@@ -46,8 +49,10 @@ def composite_key(base_name: str, pressed_name: str, box: tuple[int, int, int, i
 
 
 for output_stem, (state, key) in FRAMES.items():
-    pressed_name, box = PRESSED[key]
-    result = composite_key(NORMAL[state], pressed_name, box)
-    result.save(EVIDENCE / f"fax-{output_stem}-v1.webp", "WEBP", quality=76, method=6)
+    half_name, full_name, box = PRESSED[key]
+    half = composite_key(NORMAL[state], half_name or full_name, box, 1 if half_name else 0.45)
+    full = composite_key(NORMAL[state], full_name, box)
+    half.save(EVIDENCE / f"fax-{output_stem.replace('-pressed', '-half')}-v2.webp", "WEBP", quality=78, method=6)
+    full.save(EVIDENCE / f"fax-{output_stem.replace('-pressed', '-full')}-v2.webp", "WEBP", quality=78, method=6)
 
-print(f"generated {len(FRAMES)} fixed pressed frames")
+print(f"generated {len(FRAMES) * 2} fixed press-travel frames")

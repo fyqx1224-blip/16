@@ -2318,6 +2318,7 @@ html .photo-space .awakened .eye.right {
 .room-evidence-photo img { display: block; width: 100%; height: auto; }
 .fax-evidence-frame { opacity: 1; filter: none; }
 .fax-evidence-controls { position: absolute; z-index: 6; inset: 0; }
+.fax-evidence-controls.loading { pointer-events: none; }
 .fax-evidence-controls button { position: absolute; border: 0; background: transparent; cursor: pointer; }
 .fax-evidence-controls button:after { content: ""; position: absolute; inset: 12%; border: 1px solid #d5d2a155; border-radius: 50%; opacity: .1; box-shadow: 0 0 7px #cbd58a44; transition: opacity .2s, box-shadow .2s; }
 .fax-evidence-controls button:hover:after,
