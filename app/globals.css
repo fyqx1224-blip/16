@@ -2326,10 +2326,10 @@ html .photo-space .awakened .eye.right {
 .fax-evidence-controls button > span { position: absolute; left: 50%; bottom: calc(100% + 7px); width: max-content; max-width: 180px; padding: 4px 7px; border: 1px solid #8d8d78; background: #0a0c09df; color: #dedcc4; font: 9px SimSun, "宋体", sans-serif; letter-spacing: .08em; opacity: 0; transform: translateX(-50%); pointer-events: none; transition: opacity .18s; }
 .fax-evidence-controls button:hover > span,
 .fax-evidence-controls button:focus-visible > span { opacity: 1; }
-.fax-menu-key { left: 71.7%; top: 44.5%; width: 7%; height: 6%; }
-.fax-down-key { left: 42.7%; top: 50%; width: 7%; height: 6.5%; }
-.fax-enter-key { left: 50.5%; top: 51.4%; width: 7%; height: 6.5%; }
-.fax-print-key { left: 65%; top: 61.5%; width: 8.5%; height: 10%; }
+.fax-menu-key { left: 71.1%; top: 50.5%; width: 6.7%; height: 5.2%; }
+.fax-down-key { left: 43.5%; top: 53.3%; width: 7%; height: 5.7%; }
+.fax-enter-key { left: 49.4%; top: 57.1%; width: 7.5%; height: 5.8%; }
+.fax-print-key { left: 65.7%; top: 69%; width: 8%; height: 9.2%; }
 .fax-paper-action { left: 16%; top: 66%; width: 51%; height: 34%; }
 .fax-ledger-action { left: 17%; top: 42%; width: 52%; height: 38%; }
 .fax-paper-action:after,
