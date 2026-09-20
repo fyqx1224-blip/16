@@ -43,9 +43,12 @@ const FAX_EVIDENCE_IMAGES = {
   errorMenu: "evidence/fax-machine-error-menu-v1.webp",
   printMenu: "evidence/fax-machine-print-menu-v1.webp",
   printConfirm: "evidence/fax-machine-print-confirm-v1.webp",
-  print1: "evidence/fax-machine-print-01-v1.webp",
-  print2: "evidence/fax-machine-print-02-v1.webp",
-  report: "evidence/fax-machine-report-v1.webp",
+  print1: "evidence/fax-machine-print-frame-01-v2.webp",
+  print2: "evidence/fax-machine-print-frame-02-v2.webp",
+  print3: "evidence/fax-machine-print-frame-03-v2.webp",
+  print4: "evidence/fax-machine-print-frame-04-v2.webp",
+  print5: "evidence/fax-machine-print-frame-05-v2.webp",
+  report: "evidence/fax-machine-print-frame-06-v2.webp",
   ledger: "evidence/fax-ledger-v1.webp",
   compare: "evidence/fax-counter-comparison-v1.webp",
 } as const;
@@ -1051,10 +1054,29 @@ export default function Home() {
     motor.connect(motorGain).connect(master);
     motor.start();
     motor.stop(ctx.currentTime + 1.7);
-    for (let i = 0; i < 13; i += 1) {
+    const paperBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 1.82), ctx.sampleRate);
+    const paperData = paperBuffer.getChannelData(0);
+    for (let i = 0; i < paperData.length; i += 1) {
+      paperData[i] = (Math.random() * 2 - 1) * (0.35 + Math.sin(i / 73) * 0.12);
+    }
+    const paperNoise = ctx.createBufferSource();
+    const paperFilter = ctx.createBiquadFilter();
+    const paperGain = ctx.createGain();
+    paperNoise.buffer = paperBuffer;
+    paperFilter.type = "bandpass";
+    paperFilter.frequency.value = 920;
+    paperFilter.Q.value = 0.65;
+    paperGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    paperGain.gain.exponentialRampToValueAtTime(0.016, ctx.currentTime + 0.08);
+    paperGain.gain.setValueAtTime(0.016, ctx.currentTime + 1.62);
+    paperGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.8);
+    paperNoise.connect(paperFilter).connect(paperGain).connect(master);
+    paperNoise.start();
+    paperNoise.stop(ctx.currentTime + 1.82);
+    for (let i = 0; i < 18; i += 1) {
       const tick = ctx.createOscillator();
       const tickGain = ctx.createGain();
-      const at = ctx.currentTime + 0.12 + i * 0.105;
+      const at = ctx.currentTime + 0.08 + i * 0.094;
       tick.type = "square";
       tick.frequency.value = i % 2 ? 116 : 92;
       tickGain.gain.setValueAtTime(0.0001, at);
@@ -1070,11 +1092,18 @@ export default function Home() {
     playFaxPrintSound();
     setFaxPrinting(true);
     setFaxEvidenceStep("print1");
-    window.setTimeout(() => setFaxEvidenceStep("print2"), 520);
+    const sequence: Array<[FaxEvidenceStep, number]> = [
+      ["print2", 340],
+      ["print3", 690],
+      ["print4", 1040],
+      ["print5", 1390],
+      ["report", 1760],
+    ];
+    sequence.forEach(([step, delay]) => window.setTimeout(() => setFaxEvidenceStep(step), delay));
     window.setTimeout(() => {
       setFaxEvidenceStep("report");
       setFaxPrinting(false);
-    }, 1280);
+    }, 1800);
   };
   const confirmFaxPrint = () => {
     if (faxTransitioning || faxPrinting || !faxFramesReady) return;
@@ -2084,7 +2113,7 @@ export default function Home() {
                           {faxEvidenceStep === "count" && <button className="fax-physical-key fax-enter-key" onClick={() => pressFaxKey("enter", "rxMenu")} aria-label="按回车返回接收统计菜单"><span>返回菜单</span></button>}
                           {faxEvidenceStep === "printMenu" && <button className="fax-physical-key fax-enter-key" onClick={() => pressFaxKey("enter", "printConfirm")} aria-label="按回车选择打印报告"><span>选择打印报告</span></button>}
                           {faxEvidenceStep === "printConfirm" && <button className="fax-physical-key fax-print-key" onClick={confirmFaxPrint} aria-label="按绿色启动键确认打印维护报告"><span>确认打印</span></button>}
-                          {faxEvidenceStep !== "standby" && !faxPrinting && !["print1", "print2", "report", "ledger", "compare"].includes(faxEvidenceStep) && <button className="fax-physical-key fax-menu-key" onClick={() => pressFaxKey("menu", "standby")} aria-label="按菜单键退出维护菜单"><span>退出菜单</span></button>}
+                          {faxEvidenceStep !== "standby" && !faxPrinting && !["print1", "print2", "print3", "print4", "print5", "report", "ledger", "compare"].includes(faxEvidenceStep) && <button className="fax-physical-key fax-menu-key" onClick={() => pressFaxKey("menu", "standby")} aria-label="按菜单键退出维护菜单"><span>退出菜单</span></button>}
                           {faxEvidenceStep === "report" && <button className="fax-paper-action" onClick={() => setFaxEvidenceStep("ledger")} aria-label="拿起维护报告并查看纸质台账"><span>拿起报告，对照台账</span></button>}
                           {faxEvidenceStep === "ledger" && <button className="fax-ledger-action" onClick={() => { markFaxClue("ledger"); setFaxEvidenceStep("compare"); }} aria-label="核对纸质归档累计数"><span>核对登记累计数</span></button>}
                         </div>
