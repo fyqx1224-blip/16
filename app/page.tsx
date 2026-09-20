@@ -43,12 +43,12 @@ const FAX_EVIDENCE_IMAGES = {
   errorMenu: "evidence/fax-machine-error-menu-v1.webp",
   printMenu: "evidence/fax-machine-print-menu-v1.webp",
   printConfirm: "evidence/fax-machine-print-confirm-v1.webp",
-  print1: "evidence/fax-machine-print-frame-01-v2.webp",
-  print2: "evidence/fax-machine-print-frame-02-v2.webp",
-  print3: "evidence/fax-machine-print-frame-03-v2.webp",
-  print4: "evidence/fax-machine-print-frame-04-v2.webp",
-  print5: "evidence/fax-machine-print-frame-05-v2.webp",
-  report: "evidence/fax-machine-print-frame-06-v2.webp",
+  print1: "evidence/fax-machine-print-frame-01-v3.webp",
+  print2: "evidence/fax-machine-print-frame-02-v3.webp",
+  print3: "evidence/fax-machine-print-frame-03-v3.webp",
+  print4: "evidence/fax-machine-print-frame-04-v3.webp",
+  print5: "evidence/fax-machine-print-frame-05-v3.webp",
+  report: "evidence/fax-machine-print-frame-06-v3.webp",
   ledger: "evidence/fax-ledger-v1.webp",
   compare: "evidence/fax-counter-comparison-v1.webp",
 } as const;
@@ -1047,14 +1047,14 @@ export default function Home() {
     const motorGain = ctx.createGain();
     motor.type = "sawtooth";
     motor.frequency.setValueAtTime(58, ctx.currentTime);
-    motor.frequency.linearRampToValueAtTime(43, ctx.currentTime + 1.55);
+    motor.frequency.linearRampToValueAtTime(43, ctx.currentTime + 3.35);
     motorGain.gain.setValueAtTime(0.0001, ctx.currentTime);
     motorGain.gain.exponentialRampToValueAtTime(0.035, ctx.currentTime + 0.05);
-    motorGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.65);
+    motorGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3.55);
     motor.connect(motorGain).connect(master);
     motor.start();
-    motor.stop(ctx.currentTime + 1.7);
-    const paperBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 1.82), ctx.sampleRate);
+    motor.stop(ctx.currentTime + 3.6);
+    const paperBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 3.62), ctx.sampleRate);
     const paperData = paperBuffer.getChannelData(0);
     for (let i = 0; i < paperData.length; i += 1) {
       paperData[i] = (Math.random() * 2 - 1) * (0.35 + Math.sin(i / 73) * 0.12);
@@ -1068,42 +1068,40 @@ export default function Home() {
     paperFilter.Q.value = 0.65;
     paperGain.gain.setValueAtTime(0.0001, ctx.currentTime);
     paperGain.gain.exponentialRampToValueAtTime(0.016, ctx.currentTime + 0.08);
-    paperGain.gain.setValueAtTime(0.016, ctx.currentTime + 1.62);
-    paperGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.8);
+    paperGain.gain.setValueAtTime(0.016, ctx.currentTime + 3.35);
+    paperGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3.58);
     paperNoise.connect(paperFilter).connect(paperGain).connect(master);
     paperNoise.start();
-    paperNoise.stop(ctx.currentTime + 1.82);
-    for (let i = 0; i < 18; i += 1) {
-      const tick = ctx.createOscillator();
-      const tickGain = ctx.createGain();
-      const at = ctx.currentTime + 0.08 + i * 0.094;
-      tick.type = "square";
-      tick.frequency.value = i % 2 ? 116 : 92;
-      tickGain.gain.setValueAtTime(0.0001, at);
-      tickGain.gain.exponentialRampToValueAtTime(0.025, at + 0.008);
-      tickGain.gain.exponentialRampToValueAtTime(0.0001, at + 0.055);
-      tick.connect(tickGain).connect(master);
-      tick.start(at);
-      tick.stop(at + 0.06);
+    paperNoise.stop(ctx.currentTime + 3.62);
+    for (let frame = 0; frame < 6; frame += 1) {
+      for (let pulse = 0; pulse < 4; pulse += 1) {
+        const tick = ctx.createOscillator();
+        const tickGain = ctx.createGain();
+        const at = ctx.currentTime + 0.06 + frame * 0.59 + pulse * 0.045;
+        tick.type = "square";
+        tick.frequency.value = pulse % 2 ? 126 : 88;
+        tickGain.gain.setValueAtTime(0.0001, at);
+        tickGain.gain.exponentialRampToValueAtTime(0.032, at + 0.006);
+        tickGain.gain.exponentialRampToValueAtTime(0.0001, at + 0.04);
+        tick.connect(tickGain).connect(master);
+        tick.start(at);
+        tick.stop(at + 0.045);
+      }
     }
   };
-  const printFaxReport = () => {
+  const printFaxReport = async () => {
     if (faxPrinting) return;
     playFaxPrintSound();
     setFaxPrinting(true);
-    setFaxEvidenceStep("print1");
-    const sequence: Array<[FaxEvidenceStep, number]> = [
-      ["print2", 340],
-      ["print3", 690],
-      ["print4", 1040],
-      ["print5", 1390],
-      ["report", 1760],
-    ];
-    sequence.forEach(([step, delay]) => window.setTimeout(() => setFaxEvidenceStep(step), delay));
-    window.setTimeout(() => {
-      setFaxEvidenceStep("report");
-      setFaxPrinting(false);
-    }, 1800);
+    const sequence: FaxEvidenceStep[] = ["print1", "print2", "print3", "print4", "print5", "report"];
+    for (const step of sequence) {
+      setFaxEvidenceStep(step);
+      await new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()));
+      });
+      await new Promise((resolve) => window.setTimeout(resolve, 590));
+    }
+    setFaxPrinting(false);
   };
   const confirmFaxPrint = () => {
     if (faxTransitioning || faxPrinting || !faxFramesReady) return;
